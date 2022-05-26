@@ -1,0 +1,13 @@
+
+Website tìm đối bóng đá
+- Đăng nhập bằng google, facebook, đăng ký, đăng xuất
+- Tạo đội bóng, quản lý thông tin đội bóng
+- Quản lý thông tin cầu thủ
+- Nhắn tin
+- Tìm đối
+- Xem lịch sử đấu
+- Đánh giá, bình luận đội bóng
+- Thống kê
+- Ranking, phân hạng đội bóng
+
+https://www.sporta.vn/
