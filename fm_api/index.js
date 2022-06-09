@@ -1,10 +1,11 @@
-
 import express from "express";
 import cors from "cors";
-import dotenv from 'dotenv'
+import dotenv from "dotenv";
 import loggerMiddleware from "./middlewares/loggerMiddleware.js";
+import mongoose from "mongoose";
 
 //todo import routers
+import authRoute from "./routes/auth-route.js";
 
 dotenv.config();
 const app = express();
@@ -20,6 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(loggerMiddleware);
 
 //todo using route
+app.use("/auth", authRoute);
 
 // demo purpose only
 app.get("/", (req, res) => {
@@ -37,6 +39,16 @@ app.use((errors, req, res, next) => {
 	res.status(statusCode).json({ message, data });
 });
 
-app.listen(PORT, () => {
-	console.log("server start - " + PORT);
-});
+
+//connect to DB
+mongoose
+	.connect(process.env.MONGODB_URL)
+	.then(() => {
+		console.log("Connect to DB successful");
+		app.listen(PORT, () => {
+			console.log("Server start - " + PORT);
+		});
+	})
+	.catch((err) => {
+		console.error("Fail to connect to DB: ", err);
+	});

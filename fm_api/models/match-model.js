@@ -1,4 +1,5 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
+
 const Schema = mongoose.Schema;
 
 const matchSchema = new Schema({
@@ -40,4 +41,4 @@ const matchSchema = new Schema({
     }
 });
 
-module.exports = mongoose.model('Match', matchSchema);
+export default mongoose.model('Match', matchSchema);
