@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 
 //todo import routers
 import authRoute from "./routes/auth-route.js";
+import userRoute from "./routes/user-route.js";
 
 dotenv.config();
 const app = express();
@@ -22,6 +23,7 @@ app.use(loggerMiddleware);
 
 //todo using route
 app.use("/auth", authRoute);
+app.use("/user", userRoute);
 
 // demo purpose only
 app.get("/", (req, res) => {
@@ -38,7 +40,6 @@ app.use((errors, req, res, next) => {
 	const data = errors.data;
 	res.status(statusCode).json({ message, data });
 });
-
 
 //connect to DB
 mongoose
