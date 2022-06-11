@@ -19,10 +19,6 @@ const memberSchema = new Schema({
     },
     number: {
         type: Number,
-        required: true,
-    },
-    content: {
-        type: String
     }
 });
 
