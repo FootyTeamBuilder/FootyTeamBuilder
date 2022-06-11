@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 //todo import routers
 import authRoute from "./routes/auth-route.js";
 import userRoute from "./routes/user-route.js";
+import teamRoute from "./routes/team-route.js";
 
 dotenv.config();
 const app = express();
@@ -24,6 +25,8 @@ app.use(loggerMiddleware);
 //todo using route
 app.use("/auth", authRoute);
 app.use("/user", userRoute);
+app.use("/team", teamRoute);
+
 
 // demo purpose only
 app.get("/", (req, res) => {
