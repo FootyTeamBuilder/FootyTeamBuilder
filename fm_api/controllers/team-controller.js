@@ -3,19 +3,19 @@ import memberModel from "../models/member-model.js";
 
 class TeamController {
 
-    //[POST] /team/create
-	create = async (req, res, next) => {     
-        console.log("create");   
+	//[POST] /team/create
+	create = async (req, res, next) => {
+		console.log("create");
 		try {
 			//create new user
 			const newTeam = await teamModel.create({
 				name: req.body.name,
-                description: req.body.description,
+				description: req.body.description,
 				level: req.body.level,
 				age: {
-                    min: req.body.minAge,
-                    max: req.body.maxAge
-                }
+					minAge: req.body.minAge,
+					maxAge: req.body.maxAge
+				}
 			});
 			const newMember = await memberModel.create({
 				teamId: newTeam._id,
@@ -36,22 +36,40 @@ class TeamController {
 	};
 
 
-	// [PUT] /team/update-information
-	updateInformation = async (req, res, next) => {
-		const userId = req.userId;
+	// [PUT] /team/edit
+	edit = async (req, res, next) => {
 		const data = req.body;
+		const userId = data.userId;
+		const teamId = data.teamId;
 		try {
-			const foundUser = await userModel.findById(userId);
-			Object.keys(data).reduce((user, key) => {
-				user[key] = data[key];
-				return user;
-			}, foundUser);
+			const foundMember = await memberModel.findOne({ userId: userId, teamId: teamId });
+			console.log(foundMember);
 
-			console.log(foundUser);
-			await foundUser.save();
+			if(foundMember.role != "đội trưởng"){
+				return res.status(403).json({
+					message: "Not permitted",
+				});
+			}
+
+			const foundTeam = await teamModel.findById(teamId);
+
+
+			Object.keys(data).reduce((team, key) => {
+				if(!team[key]){
+					console.log(team["age"][key]);
+					team["age"][key] = data[key];
+					return team;
+				}
+				team[key] = data[key];
+				
+				return team;
+			}, foundTeam);
+
+			console.log(foundTeam);
+			await foundTeam.save();
 			return res.status(201).json({
 				message: "Update info successful",
-				id: foundUser._id,
+				id: foundTeam._id,
 			});
 		} catch (error) {
 			if (!error.statusCode) {

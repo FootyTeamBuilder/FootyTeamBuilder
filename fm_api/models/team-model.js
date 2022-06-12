@@ -17,8 +17,8 @@ const teamSchema = new Schema({
         default: 'vui vẻ'
     },
     age: {
-        min: { type: Number, min: 0 },
-        max: { type: Number, min: 0 },
+        minAge: { type: Number, min: 0 },
+        maxAge: { type: Number, min: 0 },
     },
     competitionHistory: [
         {
