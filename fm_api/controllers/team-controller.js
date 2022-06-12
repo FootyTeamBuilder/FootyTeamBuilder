@@ -62,6 +62,7 @@ class TeamController {
 
 
 			Object.keys(data).reduce((team, key) => {
+				//update embedded minAge maxAge
 				if (!team[key]) {
 					console.log(team["age"][key]);
 					team["age"][key] = data[key];
