@@ -47,7 +47,7 @@ class TeamController {
 		const userId = user.id
 
 		const data = req.body;
-		const teamId = data.teamId;
+		const teamId = req.params["teamId"];
 		try {
 			const foundMember = await memberModel.findOne({ userId: userId, teamId: teamId });
 			console.log(foundMember);
