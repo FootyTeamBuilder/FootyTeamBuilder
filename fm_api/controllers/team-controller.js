@@ -7,8 +7,10 @@ class TeamController {
 
 	//[POST] /team/create
 	create = async (req, res, next) => {
-		console.log("create");
 		try {
+			let decodedToken = req.get("authorization").split(" ")[1];
+			let user = jwt.verify(decodedToken, process.env.SECRET_JWT);
+			const userId = user.id
 			//create new user
 			const newTeam = await teamModel.create({
 				name: req.body.name,
@@ -21,7 +23,7 @@ class TeamController {
 			});
 			const newMember = await memberModel.create({
 				teamId: newTeam._id,
-				userId: req.body.userId,
+				userId: userId,
 				role: "đội trưởng"
 			});
 			return res.status(201).json({
@@ -41,10 +43,8 @@ class TeamController {
 	// [PUT] /team/edit
 	edit = async (req, res, next) => {
 		let decodedToken = req.get("authorization").split(" ")[1];
-		let user =  jwt.verify(decodedToken, process.env.SECRET_JWT);
-		const userId = user.id 
-
-		console.log(userId);
+		let user = jwt.verify(decodedToken, process.env.SECRET_JWT);
+		const userId = user.id
 
 		const data = req.body;
 		const teamId = data.teamId;
@@ -52,7 +52,7 @@ class TeamController {
 			const foundMember = await memberModel.findOne({ userId: userId, teamId: teamId });
 			console.log(foundMember);
 
-			if(foundMember.role != "đội trưởng"){
+			if (foundMember.role != "đội trưởng") {
 				return res.status(403).json({
 					message: "Not permitted",
 				});
@@ -62,13 +62,13 @@ class TeamController {
 
 
 			Object.keys(data).reduce((team, key) => {
-				if(!team[key]){
+				if (!team[key]) {
 					console.log(team["age"][key]);
 					team["age"][key] = data[key];
 					return team;
 				}
 				team[key] = data[key];
-				
+
 				return team;
 			}, foundTeam);
 
