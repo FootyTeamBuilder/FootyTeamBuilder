@@ -1,5 +1,7 @@
 import teamModel from "../models/team-model.js";
 import memberModel from "../models/member-model.js";
+import jwt from "jsonwebtoken";
+
 
 class TeamController {
 
@@ -38,8 +40,13 @@ class TeamController {
 
 	// [PUT] /team/edit
 	edit = async (req, res, next) => {
+		let decodedToken = req.get("authorization").split(" ")[1];
+		let user =  jwt.verify(decodedToken, process.env.SECRET_JWT);
+		const userId = user.id 
+
+		console.log(userId);
+
 		const data = req.body;
-		const userId = data.userId;
 		const teamId = data.teamId;
 		try {
 			const foundMember = await memberModel.findOne({ userId: userId, teamId: teamId });
