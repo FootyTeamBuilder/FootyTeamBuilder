@@ -8,9 +8,7 @@ class TeamController {
 	//[POST] /team/create
 	create = async (req, res, next) => {
 		try {
-			let decodedToken = req.get("authorization").split(" ")[1];
-			let user = jwt.verify(decodedToken, process.env.SECRET_JWT);
-			const userId = user.id
+			const userId = req.userId;
 			//create new user
 			const newTeam = await teamModel.create({
 				name: req.body.name,
@@ -42,12 +40,11 @@ class TeamController {
 
 	// [PUT] /team/edit
 	edit = async (req, res, next) => {
-		let decodedToken = req.get("authorization").split(" ")[1];
-		let user = jwt.verify(decodedToken, process.env.SECRET_JWT);
-		const userId = user.id
+		const userId = req.userId
 
 		const data = req.body;
 		const teamId = req.params["teamId"];
+		console.log(userId);
 		try {
 			const foundMember = await memberModel.findOne({ userId: userId, teamId: teamId });
 			console.log(foundMember);
