@@ -7,5 +7,6 @@ const teamController = new TeamController();
 const route = express.Router();
 
 route.put("/create", isAuth, teamController.create);
+route.put("/edit/:teamId", isAuth, teamController.edit);
 
 export default route;
