@@ -2,9 +2,7 @@ import teamModel from "../models/team-model.js";
 import memberModel from "../models/member-model.js";
 import jwt from "jsonwebtoken";
 
-
 class TeamController {
-
 	//[POST] /team/create
 	create = async (req, res, next) => {
 		try {
@@ -16,13 +14,13 @@ class TeamController {
 				level: req.body.level,
 				age: {
 					minAge: req.body.minAge,
-					maxAge: req.body.maxAge
-				}
+					maxAge: req.body.maxAge,
+				},
 			});
 			const newMember = await memberModel.create({
 				teamId: newTeam._id,
 				userId: userId,
-				role: "đội trưởng"
+				role: "đội trưởng",
 			});
 			return res.status(201).json({
 				message: "Create New Team Successful",
@@ -37,16 +35,18 @@ class TeamController {
 		}
 	};
 
-
 	// [PUT] /team/edit
 	edit = async (req, res, next) => {
-		const userId = req.userId
+		const userId = req.userId;
 
 		const data = req.body;
 		const teamId = req.params["teamId"];
 		console.log(userId);
 		try {
-			const foundMember = await memberModel.findOne({ userId: userId, teamId: teamId });
+			const foundMember = await memberModel.findOne({
+				userId: userId,
+				teamId: teamId,
+			});
 			console.log(foundMember);
 
 			if (foundMember.role != "đội trưởng") {
@@ -56,7 +56,6 @@ class TeamController {
 			}
 
 			const foundTeam = await teamModel.findById(teamId);
-
 
 			Object.keys(data).reduce((team, key) => {
 				//update embedded minAge maxAge
@@ -82,6 +81,27 @@ class TeamController {
 			}
 			next(error);
 		}
+	};
+
+	// [GET] /team/list
+	listTeam = async (req, res, next) => {
+		// attract keyword
+		const keyword = req.params.keyword;
+		// res.send({ message: "list team", keyword });
+		let allTeam = [];
+		// if no keyword provided -> findAll
+		if (!keyword) {
+			allTeam = await teamModel.find({});
+		} else {
+			allTeam = await teamModel.find({
+				name: { $regex: keyword, $options: "i" },
+			});
+		}
+
+		res.status(201).send({
+			message: "Fetch list team successful",
+			data: allTeam,
+		});
 	};
 }
 
