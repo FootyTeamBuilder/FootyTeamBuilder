@@ -9,11 +9,9 @@ const notiSchema = new Schema({
     },
     teamId: {
         type: String,
-        required: true
     },
     senderId: {
         type: String,
-        required: true
     },
     recievedId: {
         type: mongoose.Schema.Types.ObjectId,
