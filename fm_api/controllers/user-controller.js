@@ -1,4 +1,8 @@
 import userModel from "../models/user-model.js";
+import notiModel from "../models/noti-model.js";
+import teamModel from "../models/team-model.js";
+import memberModel from "../models/member-model.js";
+
 
 class UserController {
 	// [PUT] /user/update-information
@@ -27,6 +31,80 @@ class UserController {
 			next(error);
 		}
 	};
+
+	requestToJoinTeam = async (req, res, next) => {
+		const userId = req.userId;
+		const teamId = req.params["teamId"];
+		console.log(teamId);
+		try {
+			const foundTeam = await teamModel.findById(teamId);
+			const foundCaptain = await memberModel.findOne({
+				teamId: teamId,
+				role: "đội trưởng",
+			});
+			const foundUser = await userModel.findById(userId);
+
+			const newNoti = await notiModel.create({
+				type: "User",
+				senderId: userId,
+				recievedId: foundCaptain.userId,
+				teamId: teamId,
+				content: foundUser.name + " request to join " + foundTeam.name
+			});
+			await newNoti.save();
+			return res.status(201).json({
+				message: "Send request successful!!",
+				teamId: teamId,
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	}
+
+	acceptMemberToTeam = async (req, res, next) => {
+		const userId = req.userId;
+		const notiId = req.params["notiId"];
+		try {
+			const foundNoti = await notiModel.findById(notiId);
+			const foundCaptain = await memberModel.findOne({
+				teamId: foundNoti.teamId,
+				role: "đội trưởng",
+			});
+			const foundTeam = await teamModel.findById(foundNoti.teamId);
+			const foundUser = await userModel.findById(userId);
+
+			//check is user is captain
+			if (userId == foundCaptain.userId) {
+				const newMember = await memberModel.create({
+					userId: foundNoti.senderId,
+					teamId: foundNoti.teamId,
+					role: "thành viên",
+				});
+				await newMember.save();
+				const newNoti = await notiModel.create({
+					type: "User",
+					senderId: userId,
+					recievedId: foundNoti.senderId,
+					teamId: foundNoti.teamId,
+					content: foundUser.name + " accept your request to join " + foundTeam.name
+				});
+				await newNoti.save();
+				return res.status(201).json({
+					message: "Accept request successful!!",
+				});
+			}
+
+
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	}
 
 	// [DELETE] /user/delete-information
 	deleteInformation = (req, res, next) => {
