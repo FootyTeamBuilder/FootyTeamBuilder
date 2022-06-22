@@ -1,5 +1,6 @@
 import teamModel from "../models/team-model.js";
 import memberModel from "../models/member-model.js";
+import userModel from "../models/user-model.js";
 import jwt from "jsonwebtoken";
 
 import ROLE from "../utils/enums.js";
@@ -104,6 +105,38 @@ class TeamController {
 			message: "Fetch list team successful",
 			data: allTeam,
 		});
+	};
+	viewTeam = async (req, res, next) => {
+		try {
+			const teamId = req.params.teamId;
+			const foundTeam = await teamModel.findById(teamId);
+			//search in member
+			const captain =  await memberModel.findOne({
+				teamId: teamId,
+				role: ROLE.CAPTAIN,
+			});
+			const members =  await memberModel.find({
+				teamId: teamId,
+				role: ROLE.MEMBER,
+			});
+			//search member in user
+			const captainUser =  await userModel.findById(captain.userId);
+			let memberUsers = [];
+			for(var member of members){
+				let memberUser = await userModel.findById(member.userId);
+				memberUsers.push(memberUser);
+			}
+			return res.status(201).json({
+				team: foundTeam,
+				captain: captainUser,
+				members: memberUsers,
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
 	};
 }
 
