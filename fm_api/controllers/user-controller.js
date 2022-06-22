@@ -3,6 +3,7 @@ import notiModel from "../models/noti-model.js";
 import teamModel from "../models/team-model.js";
 import memberModel from "../models/member-model.js";
 
+import ROLE from "../utils/enums.js";
 
 class UserController {
 	// [PUT] /user/update-information
@@ -31,25 +32,26 @@ class UserController {
 			next(error);
 		}
 	};
-
+	//? when user want to join a team
 	requestToJoinTeam = async (req, res, next) => {
 		const userId = req.userId;
-		const teamId = req.params["teamId"];
+		// const teamId = req.params["teamId"];
+		const teamId = req.params.teamId;
 		console.log(teamId);
 		try {
 			const foundTeam = await teamModel.findById(teamId);
 			const foundCaptain = await memberModel.findOne({
 				teamId: teamId,
-				role: "đội trưởng",
+				role: ROLE.CAPTAIN,
 			});
 			const foundUser = await userModel.findById(userId);
 
 			const newNoti = await notiModel.create({
-				type: "User",
+				type: ROLE.USER,
 				senderId: userId,
 				recievedId: foundCaptain.userId,
 				teamId: teamId,
-				content: foundUser.name + " request to join " + foundTeam.name
+				content: foundUser.name + " request to join " + foundTeam.name,
 			});
 			await newNoti.save();
 			return res.status(201).json({
@@ -62,16 +64,16 @@ class UserController {
 			}
 			next(error);
 		}
-	}
+	};
 
 	acceptMemberToTeam = async (req, res, next) => {
 		const userId = req.userId;
-		const notiId = req.params["notiId"];
+		const notiId = req.params.notiId;
 		try {
 			const foundNoti = await notiModel.findById(notiId);
 			const foundCaptain = await memberModel.findOne({
 				teamId: foundNoti.teamId,
-				role: "đội trưởng",
+				role: ROLE.CAPTAIN,
 			});
 			const foundTeam = await teamModel.findById(foundNoti.teamId);
 			const foundUser = await userModel.findById(userId);
@@ -81,30 +83,33 @@ class UserController {
 				const newMember = await memberModel.create({
 					userId: foundNoti.senderId,
 					teamId: foundNoti.teamId,
-					role: "thành viên",
+					role: ROLE.MEMBER,
 				});
 				await newMember.save();
 				const newNoti = await notiModel.create({
-					type: "User",
+					type: ROLE.USER,
 					senderId: userId,
 					recievedId: foundNoti.senderId,
 					teamId: foundNoti.teamId,
-					content: foundUser.name + " accept your request to join " + foundTeam.name
+					content:
+						foundUser.name +
+						" accept your request to join " +
+						foundTeam.name,
 				});
 				await newNoti.save();
 				return res.status(201).json({
 					message: "Accept request successful!!",
 				});
+			} else {
+				throw new Error("Permission restricted");
 			}
-
-
 		} catch (error) {
 			if (!error.statusCode) {
 				error.statusCode = 500;
 			}
 			next(error);
 		}
-	}
+	};
 
 	// [DELETE] /user/delete-information
 	deleteInformation = (req, res, next) => {

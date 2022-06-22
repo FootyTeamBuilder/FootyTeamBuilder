@@ -2,6 +2,8 @@ import teamModel from "../models/team-model.js";
 import memberModel from "../models/member-model.js";
 import jwt from "jsonwebtoken";
 
+import ROLE from "../utils/enums.js";
+
 class TeamController {
 	//[POST] /team/create
 	create = async (req, res, next) => {
@@ -20,7 +22,7 @@ class TeamController {
 			const newMember = await memberModel.create({
 				teamId: newTeam._id,
 				userId: userId,
-				role: "đội trưởng",
+				role: ROLE.CAPTAIN,
 			});
 			return res.status(201).json({
 				message: "Create New Team Successful",
@@ -49,7 +51,7 @@ class TeamController {
 			});
 			console.log(foundMember);
 
-			if (foundMember.role != "đội trưởng") {
+			if (foundMember.role != ROLE.CAPTAIN) {
 				return res.status(403).json({
 					message: "Not permitted",
 				});
