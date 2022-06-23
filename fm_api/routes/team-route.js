@@ -10,6 +10,7 @@ route.get('/list/:keyword', teamController.listTeam)
 route.put("/create", isAuth, teamController.create);
 route.put("/edit/:teamId", isAuth, teamController.edit);
 route.get('/view-team/:teamId', teamController.viewTeam);
+route.post('/create-member/:teamId', isAuth, teamController.createMember);
 
 
 export default route;

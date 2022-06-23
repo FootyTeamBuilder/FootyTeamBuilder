@@ -15,7 +15,8 @@ const memberSchema = new Schema({
     },
     role: {
         type: String,
-        enum: ['đội trưởng', 'thành viên']
+        enum: ['đội trưởng', 'thành viên'],
+        default: 'thành viên',
     },
     number: {
         type: Number,

@@ -43,7 +43,7 @@ class TeamController {
 		const userId = req.userId;
 
 		const data = req.body;
-		const teamId = req.params["teamId"];
+		const teamId = req.params.teamId;
 		console.log(userId);
 		try {
 			const foundMember = await memberModel.findOne({
@@ -111,18 +111,18 @@ class TeamController {
 			const teamId = req.params.teamId;
 			const foundTeam = await teamModel.findById(teamId);
 			//search in member
-			const captain =  await memberModel.findOne({
+			const captain = await memberModel.findOne({
 				teamId: teamId,
 				role: ROLE.CAPTAIN,
 			});
-			const members =  await memberModel.find({
+			const members = await memberModel.find({
 				teamId: teamId,
 				role: ROLE.MEMBER,
 			});
 			//search member in user
-			const captainUser =  await userModel.findById(captain.userId);
+			const captainUser = await userModel.findById(captain.userId);
 			let memberUsers = [];
-			for(var member of members){
+			for (var member of members) {
 				let memberUser = await userModel.findById(member.userId);
 				memberUsers.push(memberUser);
 			}
@@ -138,6 +138,44 @@ class TeamController {
 			next(error);
 		}
 	};
+
+	createMember = async (req, res, next) => {
+		const userId = req.userId;
+
+		const data = req.body;
+		const teamId = req.params.teamId;
+		try {
+			const foundMember = await memberModel.findOne({
+				userId: userId,
+				teamId: teamId,
+			});
+			if (foundMember.role != ROLE.CAPTAIN) {
+				return res.status(403).json({
+					message: "Not permitted!!",
+				});
+			}
+
+			const foundTeam = await teamModel.findById(teamId);
+
+			if (data['isExistUser']) {
+				const existMember = await userModel.findOne({ email: data['email'] });
+				const newMember = await memberModel.create({
+					data
+				});
+			}
+
+			return res.status(201).json({
+				message: "Create member successful!",
+				id: foundTeam._id,
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
+
 }
 
 export default TeamController;
