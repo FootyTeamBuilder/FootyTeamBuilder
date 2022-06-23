@@ -33,30 +33,81 @@ class UserController {
 		}
 	};
 	//? when user want to join a team
+	// requestToJoinTeam = async (req, res, next) => {
+	// 	const userId = req.userId;
+	// 	// const teamId = req.params["teamId"];
+	// 	const teamId = req.params.teamId;
+	// 	console.log(teamId);
+	// 	try {
+	// 		const foundTeam = await teamModel.findById(teamId);
+	// 		const foundCaptain = await memberModel.findOne({
+	// 			teamId: teamId,
+	// 			role: ROLE.CAPTAIN,
+	// 		});
+	// 		const foundUser = await userModel.findById(userId);
+
+	// 		const newNoti = await notiModel.create({
+	// 			type: ROLE.USER,
+	// 			senderId: userId,
+	// 			recievedId: foundCaptain.userId,
+	// 			teamId: teamId,
+	// 			content: foundUser.name + " request to join " + foundTeam.name,
+	// 		});
+	// 		// await newNoti.save();
+	// 		return res.status(201).json({
+	// 			message: "Send request successful!!",
+	// 			teamId: teamId,
+	// 		});
+	// 	} catch (error) {
+	// 		if (!error.statusCode) {
+	// 			error.statusCode = 500;
+	// 		}
+	// 		next(error);
+	// 	}
+	// };
+	// [PUT] /user/request-to-join/:teamId
 	requestToJoinTeam = async (req, res, next) => {
-		const userId = req.userId;
-		// const teamId = req.params["teamId"];
+		//get Id of sender
+		const senderId = req.userId;
+		//get id of team
 		const teamId = req.params.teamId;
-		console.log(teamId);
+		const playerId = req.body.playerId;
+		
 		try {
 			const foundTeam = await teamModel.findById(teamId);
 			const foundCaptain = await memberModel.findOne({
 				teamId: teamId,
 				role: ROLE.CAPTAIN,
 			});
-			const foundUser = await userModel.findById(userId);
+			// receiveId will be captain by default
+			let receiveId = foundCaptain.userId.toString();
+			let type = ROLE.USER;
+			let content;
+			if (playerId) {
+				if (foundCaptain.userId.toString() !== senderId.toString()) {
+					throw new Error("Permission restricted");
+				}
+				receiveId = playerId;
+				type = ROLE.TEAM;
+				content = `${foundTeam.name} request you to join`;
+			} else {
+				const foundUser = await userModel.findById(senderId);
+				content = foundUser.name + " request to join " + foundTeam.name;
+			}
 
 			const newNoti = await notiModel.create({
-				type: ROLE.USER,
-				senderId: userId,
-				recievedId: foundCaptain.userId,
+				type,
+				senderId: senderId,
+				recievedId: receiveId,
 				teamId: teamId,
-				content: foundUser.name + " request to join " + foundTeam.name,
+				content,
 			});
-			await newNoti.save();
+			// await newNoti.save();
 			return res.status(201).json({
 				message: "Send request successful!!",
 				teamId: teamId,
+				notiId: newNoti._id,
+				content: newNoti.content,
 			});
 		} catch (error) {
 			if (!error.statusCode) {
@@ -65,7 +116,7 @@ class UserController {
 			next(error);
 		}
 	};
-
+	//? captain accept member to join
 	acceptMemberToTeam = async (req, res, next) => {
 		const userId = req.userId;
 		const notiId = req.params.notiId;
@@ -110,6 +161,8 @@ class UserController {
 			next(error);
 		}
 	};
+
+	//
 
 	leaveTeam = async (req, res, next) => {
 		const userId = req.userId;
