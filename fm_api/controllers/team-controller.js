@@ -185,12 +185,50 @@ class TeamController {
 			let userInfo;
 			if (foundMember.isExistUser) {
 				userInfo = await userModel.findById(foundMember.userId);
-				
+
 			}
 
 			return res.status(201).json({
 				member: foundMember,
 				info: userInfo,
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
+
+	updateMember = async (req, res, next) => {
+		const userId = req.userId;
+		const data = req.body;
+		const memberId = req.params.memberId;
+		const teamId = req.params.teamId;
+		try {
+			const foundCaptain = await memberModel.findOne({
+				userId: userId,
+				teamId: teamId,
+			});
+
+			if (foundCaptain.role != ROLE.CAPTAIN) {
+				return res.status(403).json({
+					message: "Not permitted",
+				});
+			}
+
+			const foundMember = await memberModel.findById(memberId);
+
+			Object.keys(data).reduce((member, key) => {
+				member[key] = data[key];
+				return member;
+			}, foundMember);
+
+			console.log(foundMember);
+			await foundMember.save();
+			return res.status(201).json({
+				message: "Update info successful",
+				member: foundMember,
 			});
 		} catch (error) {
 			if (!error.statusCode) {
