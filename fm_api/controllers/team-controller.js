@@ -238,6 +238,33 @@ class TeamController {
 		}
 	};
 
+	deleteMember = async (req, res, next) => {
+		const userId = req.userId;
+		const memberId = req.params.memberId;
+		const teamId = req.params.teamId;
+		try {
+			const foundCaptain = await memberModel.findOne({
+				userId: userId,
+				teamId: teamId,
+			});
+
+			if (foundCaptain.role != ROLE.CAPTAIN) {
+				return res.status(403).json({
+					message: "Not permitted",
+				});
+			}
+			await memberModel.deleteOne({_id: memberId});
+			return res.status(201).json({
+				message: "Delete member successful!!",
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
+
 }
 
 export default TeamController;
