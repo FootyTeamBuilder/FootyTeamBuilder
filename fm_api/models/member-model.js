@@ -17,6 +17,7 @@ const memberSchema = new Schema({
 	role: {
 		type: String,
 		enum: [ROLE.CAPTAIN, ROLE.MEMBER],
+		default: ROLE.MEMBER,
 	},
 	nickname: {
 		type: String,

@@ -43,7 +43,7 @@ class TeamController {
 		const userId = req.userId;
 
 		const data = req.body;
-		const teamId = req.params["teamId"];
+		const teamId = req.params.teamId;
 		console.log(userId);
 		try {
 			const foundMember = await memberModel.findOne({
@@ -111,18 +111,18 @@ class TeamController {
 			const teamId = req.params.teamId;
 			const foundTeam = await teamModel.findById(teamId);
 			//search in member
-			const captain =  await memberModel.findOne({
+			const captain = await memberModel.findOne({
 				teamId: teamId,
 				role: ROLE.CAPTAIN,
 			});
-			const members =  await memberModel.find({
+			const members = await memberModel.find({
 				teamId: teamId,
 				role: ROLE.MEMBER,
 			});
 			//search member in user
-			const captainUser =  await userModel.findById(captain.userId);
+			const captainUser = await userModel.findById(captain.userId);
 			let memberUsers = [];
-			for(var member of members){
+			for (var member of members) {
 				let memberUser = await userModel.findById(member.userId);
 				memberUsers.push(memberUser);
 			}
@@ -138,6 +138,133 @@ class TeamController {
 			next(error);
 		}
 	};
+
+	createMember = async (req, res, next) => {
+		const userId = req.userId;
+
+		const data = req.body;
+		const teamId = req.params.teamId;
+		try {
+			const foundMember = await memberModel.findOne({
+				userId: userId,
+				teamId: teamId,
+			});
+			if (foundMember.role != ROLE.CAPTAIN) {
+				return res.status(403).json({
+					message: "Not permitted!!",
+				});
+			}
+			data.teamId = teamId;
+			const foundTeam = await teamModel.findById(teamId);
+
+			if (data['isExistUser']) {
+				const existMember = await userModel.findOne({ email: data.email });
+				data.userId = existMember._id;
+			}
+			console.log(data);
+			const newMember = await memberModel.create(
+				data
+			);
+
+			return res.status(201).json({
+				message: "Create member successful!",
+				member: newMember
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
+
+	viewMember = async (req, res, next) => {
+		const memberId = req.params.memberId;
+		try {
+			const foundMember = await memberModel.findById(memberId);
+			let userInfo;
+			if (foundMember.isExistUser) {
+				userInfo = await userModel.findById(foundMember.userId);
+
+			}
+
+			return res.status(201).json({
+				member: foundMember,
+				info: userInfo,
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
+
+	updateMember = async (req, res, next) => {
+		const userId = req.userId;
+		const data = req.body;
+		const memberId = req.params.memberId;
+		const teamId = req.params.teamId;
+		try {
+			const foundCaptain = await memberModel.findOne({
+				userId: userId,
+				teamId: teamId,
+			});
+
+			if (foundCaptain.role != ROLE.CAPTAIN) {
+				return res.status(403).json({
+					message: "Not permitted",
+				});
+			}
+
+			const foundMember = await memberModel.findById(memberId);
+
+			Object.keys(data).reduce((member, key) => {
+				member[key] = data[key];
+				return member;
+			}, foundMember);
+
+			console.log(foundMember);
+			await foundMember.save();
+			return res.status(201).json({
+				message: "Update info successful",
+				member: foundMember,
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
+
+	deleteMember = async (req, res, next) => {
+		const userId = req.userId;
+		const memberId = req.params.memberId;
+		const teamId = req.params.teamId;
+		try {
+			const foundCaptain = await memberModel.findOne({
+				userId: userId,
+				teamId: teamId,
+			});
+
+			if (foundCaptain.role != ROLE.CAPTAIN) {
+				return res.status(403).json({
+					message: "Not permitted",
+				});
+			}
+			await memberModel.deleteOne({_id: memberId});
+			return res.status(201).json({
+				message: "Delete member successful!!",
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
+
 }
 
 export default TeamController;
