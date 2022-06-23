@@ -3,6 +3,7 @@ const ROLE = {
 	MEMBER: "thành viên",
 	USER: "User",
 	TEAM: "Team",
+	Nickname: 'Nickname'
 };
 
 export default Object.freeze(ROLE);
