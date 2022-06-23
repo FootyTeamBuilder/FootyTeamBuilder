@@ -9,6 +9,8 @@ const route = express.Router();
 route.put("/edit-information", isAuth, userController.updateInformation);
 route.put("/request-to-join/:teamId", isAuth, userController.requestToJoinTeam);
 route.put("/accept-member-to-team/:notiId", isAuth, userController.acceptMemberToTeam);
+route.delete("/leave-team/:teamId", isAuth, userController.leaveTeam);
+
 
 
 export default route;

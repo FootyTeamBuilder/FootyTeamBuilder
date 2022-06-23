@@ -111,6 +111,31 @@ class UserController {
 		}
 	};
 
+	leaveTeam = async (req, res, next) => {
+		const userId = req.userId;
+		const teamId = req.params.teamId;
+		console.log(teamId);
+		console.log(userId);
+		try {
+			// const foundMember = await memberModel.findOne({
+			// 	teamId: teamId,
+			// 	userId: userId,
+			// });
+			await memberModel.deleteOne({
+				teamId: teamId,
+				userId: userId,
+			});
+			return res.status(201).json({
+				message: "Leave team successful!!",
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
+
 	// [DELETE] /user/delete-information
 	deleteInformation = (req, res, next) => {
 		res.send("delete info");
