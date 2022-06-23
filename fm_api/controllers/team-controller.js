@@ -154,19 +154,43 @@ class TeamController {
 					message: "Not permitted!!",
 				});
 			}
-
+			data.teamId = teamId;
 			const foundTeam = await teamModel.findById(teamId);
 
 			if (data['isExistUser']) {
-				const existMember = await userModel.findOne({ email: data['email'] });
-				const newMember = await memberModel.create({
-					data
-				});
+				const existMember = await userModel.findOne({ email: data.email });
+				data.userId = existMember._id;
 			}
+			console.log(data);
+			const newMember = await memberModel.create(
+				data
+			);
 
 			return res.status(201).json({
 				message: "Create member successful!",
-				id: foundTeam._id,
+				member: newMember
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
+
+	viewMember = async (req, res, next) => {
+		const memberId = req.params.memberId;
+		try {
+			const foundMember = await memberModel.findById(memberId);
+			let userInfo;
+			if (foundMember.isExistUser) {
+				userInfo = await userModel.findById(foundMember.userId);
+				
+			}
+
+			return res.status(201).json({
+				member: foundMember,
+				info: userInfo,
 			});
 		} catch (error) {
 			if (!error.statusCode) {
