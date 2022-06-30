@@ -44,6 +44,7 @@ class AuthController {
 				message: "Login successful",
 				id: existUser._id,
 				token,
+				data: existUser,
 			});
 		} catch (error) {
 			if (!error.statusCode) {
