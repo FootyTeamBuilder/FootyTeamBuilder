@@ -4,6 +4,7 @@ import teamModel from "../models/team-model.js";
 import memberModel from "../models/member-model.js";
 
 import ROLE from "../utils/enums.js";
+import AcceptEnum from "../utils/acceptEnum.js";
 import { ObjectId } from "mongodb";
 
 class UserController {
@@ -164,7 +165,35 @@ class UserController {
 	};
 
 	// user accept captain invitation
-	acceptCaptainInvitation = async (req, res, next) => {};
+	// [POST] /user/accept-invitation
+	// body [notiId,is_accept ]
+	acceptCaptainInvitation = async (req, res, next) => {
+		const userId = req.userId;
+		const { notiId, is_accept } = req.body;
+
+		//find the noti
+		const foundNoti = await notiModel.findById(notiId);
+		if (is_accept === AcceptEnum.DENY) {
+			await notiModel.findByIdAndDelete(notiId);
+
+			return res.status(201).json({
+				message: "Accept invitation deny",
+				// data: newMember,
+			});
+		}
+		const newMember = await memberModel.create({
+			userId: foundNoti.senderId,
+			teamId: foundNoti.teamId,
+			role: ROLE.MEMBER,
+		});
+		await newMember.save();
+		await notiModel.findByIdAndDelete(notiId);
+
+		res.status(201).json({
+			message: "Accept invitation successful",
+			data: newMember,
+		});
+	};
 
 	fetchUserNoti = async (req, res, next) => {
 		const userId = req.userId;
