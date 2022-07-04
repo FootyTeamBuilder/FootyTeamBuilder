@@ -42,7 +42,7 @@ class AuthController {
 
 			return res.status(200).json({
 				message: "Login successful",
-				user: existUser,
+				id: existUser._id,
 				token,
 				data: existUser,
 			});
