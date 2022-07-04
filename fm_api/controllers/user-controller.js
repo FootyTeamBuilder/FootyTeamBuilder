@@ -6,6 +6,23 @@ import memberModel from "../models/member-model.js";
 import ROLE from "../utils/enums.js";
 
 class UserController {
+
+	getInformation = async (req, res, next) => {
+		const userId = req.params.userId;
+		try {
+			const foundUser = await userModel.findById(userId);
+
+			return res.status(201).json({
+				user: foundUser,
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
+
 	// [PUT] /user/update-information
 	updateInformation = async (req, res, next) => {
 		const userId = req.userId;
