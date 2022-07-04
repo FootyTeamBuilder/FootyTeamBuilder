@@ -4,6 +4,7 @@ import teamModel from "../models/team-model.js";
 import memberModel from "../models/member-model.js";
 
 import ROLE from "../utils/enums.js";
+import { ObjectId } from "mongodb";
 
 class UserController {
 	// [PUT] /user/update-information
@@ -72,7 +73,7 @@ class UserController {
 		//get id of team
 		const teamId = req.params.teamId;
 		const playerId = req.body.playerId;
-		
+
 		try {
 			const foundTeam = await teamModel.findById(teamId);
 			const foundCaptain = await memberModel.findOne({
@@ -162,7 +163,19 @@ class UserController {
 		}
 	};
 
-	//
+	// user accept captain invitation
+	acceptCaptainInvitation = async (req, res, next) => {};
+
+	fetchUserNoti = async (req, res, next) => {
+		const userId = req.userId;
+		//fetch noti list based on receivedId
+		const notiList = await notiModel.find({ recievedId: ObjectId(userId) });
+
+		res.status(201).json({
+			message: "Fetch notifications list successful",
+			data: notiList,
+		});
+	};
 
 	leaveTeam = async (req, res, next) => {
 		const userId = req.userId;
