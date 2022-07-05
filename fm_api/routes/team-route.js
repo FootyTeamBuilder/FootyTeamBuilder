@@ -14,6 +14,7 @@ route.post('/create-member/:teamId', isAuth, teamController.createMember);
 route.get('/view-member/:memberId', teamController.viewMember);
 route.put('/update-member/:teamId/:memberId', isAuth, teamController.updateMember);
 route.delete('/delete-member/:teamId/:memberId', isAuth, teamController.deleteMember);
+route.put('/add-opponent', isAuth, teamController.addOpponent);
 
 
 

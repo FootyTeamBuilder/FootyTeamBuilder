@@ -4,6 +4,7 @@ import userModel from "../models/user-model.js";
 import jwt from "jsonwebtoken";
 
 import ROLE from "../utils/enums.js";
+import notiModel from "../models/noti-model.js";
 
 class TeamController {
 	//[POST] /team/create
@@ -256,6 +257,47 @@ class TeamController {
 			await memberModel.deleteOne({_id: memberId});
 			return res.status(201).json({
 				message: "Delete member successful!!",
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
+
+	addOpponent = async (req, res, next) => {
+		const userId = req.userId;
+		const data = req.body;
+		try {
+			console.log(data);
+			const foundCaptain = await memberModel.findOne({
+				teamId: data.teamId,
+				userId: userId
+			});
+			const foundOpponentCaptain = await memberModel.findOne({
+				teamId: data.opponentId,
+			});
+			const foundTeam = await teamModel.findById(data.teamId);
+			const foundOpponent = await teamModel.findById(data.opponentId);
+
+			if (foundCaptain.role != ROLE.CAPTAIN) {
+				return res.status(403).json({
+					message: "Not permitted",
+				});
+			} else {
+				const newNoti = await notiModel.create({
+					type: ROLE.TEAM,
+					senderId: data.teamId,
+					recievedId: foundOpponentCaptain.userId,
+					teamId: data.opponentId,
+					content: `${foundTeam.name} want to play with ${foundOpponent.name} at ${data.area} on ${data.time} `,
+				});
+			}
+
+
+			return res.status(201).json({
+				message: "Add opponent successful!!",
 			});
 		} catch (error) {
 			if (!error.statusCode) {
