@@ -214,6 +214,37 @@ class UserController {
 	deleteInformation = (req, res, next) => {
 		res.send("delete info");
 	};
+
+	getUserTeamList = async (req, res, next) => {
+		const userId = req.params.userId;
+		const isCaptain = req.params.isCaptain;
+		try {
+			let foundMembers;
+			if(isCaptain == "true"){
+				foundMembers = await memberModel.find({userId: userId, role: ROLE.CAPTAIN});
+			} else {
+				foundMembers = await memberModel.find({userId: userId});
+			}
+			//console.log(foundMembers);
+			let foundTeams = [];
+			for(var member of foundMembers){
+				const team = await teamModel.findById(member.teamId);
+				foundTeams.push({
+					team: team,
+					role: member.role
+				});
+			}
+
+			return res.status(201).json({
+				teams: foundTeams,
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
 }
 
 export default UserController;

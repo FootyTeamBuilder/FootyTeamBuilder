@@ -16,5 +16,6 @@ route.put(
 	userController.acceptMemberToTeam
 );
 route.delete("/leave-team/:teamId", isAuth, userController.leaveTeam);
+route.get("/user-team-list/:userId/:isCaptain", userController.getUserTeamList);
 
 export default route;
