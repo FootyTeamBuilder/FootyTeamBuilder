@@ -1,10 +1,13 @@
 import teamModel from "../models/team-model.js";
 import memberModel from "../models/member-model.js";
 import userModel from "../models/user-model.js";
+import matchModel from "../models/match-model.js";
 import jwt from "jsonwebtoken";
 
-import ROLE from "../utils/enums.js";
+import ROLE, { MATCH_STATUS_ENUMS } from "../utils/enums.js";
 import notiModel from "../models/noti-model.js";
+import moment from "moment";
+import { ObjectId } from "mongodb";
 
 class TeamController {
 	//[POST] /team/create
@@ -114,12 +117,59 @@ class TeamController {
 				name: { $regex: keyword, $options: "i" },
 			});
 		}
-
 		res.status(201).send({
 			message: "Fetch list team successful",
 			data: allTeam,
 		});
 	};
+
+	viewTeam = async (req, res, next) => {
+		try {
+			const teamId = req.params.teamId;
+			const foundTeam = await teamModel.findById(teamId);
+			//search in member
+			const captain = await memberModel.findOne({
+				teamId: teamId,
+				role: ROLE.CAPTAIN,
+			});
+			const members = await memberModel.find({
+				teamId: teamId,
+				role: ROLE.MEMBER,
+			});
+			//search member in user
+			const captainUser = await userModel.findById(captain.userId);
+			let memberUsers = [];
+			for (var member of members) {
+				if (member.isExistUser) {
+					let memberUser = await userModel.findById(member.userId);
+					memberUsers.push({
+						member: member,
+						info: memberUser,
+					});
+				} else {
+					memberUsers.push({
+						member: member,
+					});
+				}
+			}
+			return res.status(201).json({
+				team: foundTeam,
+				captain: captainUser,
+				members: memberUsers,
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
+
+	// 	res.status(201).send({
+	// 		message: "Fetch list team successful",
+	// 		data: allTeam,
+	// 	});
+	// };
 	viewTeam = async (req, res, next) => {
 		try {
 			const teamId = req.params.teamId;
@@ -289,18 +339,17 @@ class TeamController {
 
 	addOpponent = async (req, res, next) => {
 		const userId = req.userId;
-		const data = req.body;
+		const { teamId, opponentId, area, time, message } = req.body;
 		try {
-			console.log(data);
 			const foundCaptain = await memberModel.findOne({
-				teamId: data.teamId,
+				teamId: teamId,
 				userId: userId,
 			});
 			const foundOpponentCaptain = await memberModel.findOne({
-				teamId: data.opponentId,
+				teamId: opponentId,
 			});
-			const foundTeam = await teamModel.findById(data.teamId);
-			const foundOpponent = await teamModel.findById(data.opponentId);
+			const foundTeam = await teamModel.findById(teamId);
+			const foundOpponent = await teamModel.findById(opponentId);
 
 			if (foundCaptain.role != ROLE.CAPTAIN) {
 				return res.status(403).json({
@@ -309,10 +358,17 @@ class TeamController {
 			} else {
 				const newNoti = await notiModel.create({
 					type: ROLE.TEAM,
-					senderId: data.teamId,
+					sendedTeamId: teamId,
+					senderId: userId,
 					recievedId: foundOpponentCaptain.userId,
-					teamId: data.opponentId,
-					content: `${foundTeam.name} want to play with ${foundOpponent.name} at ${data.area} on ${data.time} `,
+					recievedTeamId: opponentId,
+					area: area,
+					time: time,
+					content: `${foundTeam.name} want to play with ${
+						foundOpponent.name
+					} at ${area} on ${moment(time).format(
+						"MMMM Do YYYY, h:mm a"
+					)}`,
 				});
 			}
 
@@ -324,6 +380,148 @@ class TeamController {
 				error.statusCode = 500;
 			}
 			next(error);
+		}
+	};
+
+	acceptOpponent = async (req, res, next) => {
+		const userId = req.userId;
+		try {
+			const foundNoti = await notiModel.findById(req.params.notiId);
+			const foundTeam = await teamModel.findById(
+				foundNoti.recievedTeamId
+			);
+			const foundOpponent = await teamModel.findById(
+				foundNoti.sendedTeamId
+			);
+
+			const newMatch = await matchModel.create({
+				team1: {
+					teamId: foundNoti.sendedTeamId,
+				},
+				team2: {
+					teamId: foundNoti.recievedTeamId,
+				},
+				time: foundNoti.time,
+				area: foundNoti.area,
+			});
+
+			const newNoti = await notiModel.create({
+				type: ROLE.TEAM,
+				sendedTeamId: foundNoti.recievedTeamId,
+				senderId: foundNoti.recievedId,
+				recievedId: foundNoti.senderId,
+				recievedTeamId: foundNoti.sendedTeamId,
+				area: foundNoti.area,
+				time: foundNoti.time,
+				content: `${foundTeam.name} accept to play with ${
+					foundOpponent.name
+				} at ${foundNoti.area} on ${moment(foundNoti.time).format(
+					"MMMM Do YYYY, h:mm a"
+				)}`,
+			});
+
+			return res.status(201).json({
+				message: "Accept opponent successful!!",
+				matchId: newMatch._id,
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
+
+	updateMatch = async (req, res, next) => {
+		const matchId = req.params.matchId;
+		const captainId = req.userId;
+		const { team1Score, team2Score, matchRecord } = req.body;
+		try {
+			const foundMatch = await matchModel.findById(matchId);
+			const team1Captain = await memberModel.findOne({
+				teamId: foundMatch.team1.teamId,
+			});
+			let isTeam1Captain = false;
+			if (captainId == team1Captain.userId) {
+				isTeam1Captain = true;
+			}
+			//xóa các record upate từ trước
+			await matchModel.updateOne(
+				{
+					_id: ObjectId(matchId),
+				},
+				{
+					$pull: {
+						matchRecord: { isTeam1: isTeam1Captain },
+					},
+				}
+			);
+			//foundMatch.matchRecord.pull({isTeam1: true});
+			//captain team 1 update score 1
+			if (isTeam1Captain) {
+				foundMatch.team1.score1 = team1Score;
+				foundMatch.team2.score1 = team2Score;
+			} else {
+				//captain team 2 update score 2
+				foundMatch.team1.score2 = team1Score;
+				foundMatch.team2.score2 = team2Score;
+			}
+			//re-format matchRecord
+			matchRecord.map((record) => {
+				foundMatch.matchRecord.push({
+					...record,
+					memberId: ObjectId(record.memberId),
+				});
+				// return { ...record, memberId: ObjectId(record.memberId) }
+			});
+			//push match record
+
+			if (foundMatch.status == MATCH_STATUS_ENUMS.NONE) {
+				foundMatch.status = MATCH_STATUS_ENUMS.PENDING;
+			} else {
+				console.log("not pending");
+				if (this.verifySCore(foundMatch.team1, foundMatch.team2)) {
+					console.log("confirm");
+
+					foundMatch.status = MATCH_STATUS_ENUMS.CONFIRM;
+				} else {
+					console.log("conflict");
+
+					foundMatch.status = MATCH_STATUS_ENUMS.CONFLICT;
+				}
+			}
+			await foundMatch.save();
+			// if (foundMatch.status == MATCH_STATUS_ENUMS.NONE) {
+			//   foundMatch.team1.score = team1Score;
+			//   foundMatch.team2.score = team2Score;
+			//   foundMatch.matchRecord.push(matchRecord);
+			//   foundMatch.status == MATCH_STATUS_ENUMS.PENDING;
+			//   await foundMatch.save();
+			// } else if (foundMatch.status == MATCH_STATUS_ENUMS.PENDING){
+			//   foundMatch.team1.verifyScore = team1Score;
+			//   foundMatch.team2.verifyScore = team2Score;
+			//   foundMatch.matchRecord.push(matchRecord);
+			//   foundMatch.status == MATCH_STATUS_ENUMS.PENDING;
+			//   await foundMatch.save();
+			// }
+
+			return res.status(201).json({
+				message: "Accept opponent successful!!",
+				match: foundMatch,
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
+
+	verifySCore = (team1, team2) => {
+		if (team1.score1 == team1.score2 && team2.score1 == team2.score2) {
+			return true;
+		} else {
+			return false;
 		}
 	};
 }

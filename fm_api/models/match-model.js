@@ -8,29 +8,35 @@ const matchSchema = new Schema({
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "Team",
 		},
-		score: Number,
-		verifyScore: Number, // from rival ->
+		captainId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "User",
+		},
+		score1: Number,
+		score2: Number, // from rival ->
 		//check if score === verifyScore -> resolve
 		// score !== verifyScore -> conflict
 		// verify score === null -> pending input
-		// required: true,
 	},
 	team2: {
 		teamId: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "Team",
 		},
-		score: Number,
-		verifyScore: Number, // from rival
+		captainId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "User",
+		},
+		score1: Number,
+		score2: Number, // from rival
 		//check if score === verifyScore -> resolve
 		// score !== verifyScore -> conflict
 		// verify score === null -> pending input
-		// required: true,
 	},
 	status: {
 		type: String,
 		enum: ["none", "pending", "conflict", "confirm"],
-		required: true,
+		default: "none"
 	},
 	matchRecord: [
 		{
@@ -38,6 +44,7 @@ const matchSchema = new Schema({
 				type: mongoose.Schema.Types.ObjectId,
 				ref: "Member",
 			},
+			isTeam1: Boolean,
 			minute: Number,
 		},
 	],

@@ -24,5 +24,7 @@ route.delete(
 	teamController.deleteMember
 );
 route.put("/add-opponent", isAuth, teamController.addOpponent);
+route.post("/accept-opponent/:notiId", isAuth, teamController.acceptOpponent);
+route.post("/update-match/:matchId", isAuth, teamController.updateMatch);
 
 export default route;
