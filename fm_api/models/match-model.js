@@ -8,6 +8,10 @@ const matchSchema = new Schema({
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "Team",
 		},
+		captainId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "User",
+		},
 		score: Number,
 		verifyScore: Number, // from rival ->
 		//check if score === verifyScore -> resolve
@@ -18,6 +22,10 @@ const matchSchema = new Schema({
 		teamId: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "Team",
+		},
+		captainId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "User",
 		},
 		score: Number,
 		verifyScore: Number, // from rival
