@@ -27,6 +27,12 @@ const notiSchema = new Schema({
     message: {
         type: String
     },
+    time: {
+		type: Date,
+	},
+	area: {
+		type: String,
+	},
 });
 
 notiSchema.set('timestamps', true);
