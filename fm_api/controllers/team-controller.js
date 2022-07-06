@@ -1,6 +1,7 @@
 import teamModel from "../models/team-model.js";
 import memberModel from "../models/member-model.js";
 import userModel from "../models/user-model.js";
+import matchModel from "../models/match-model.js";
 import jwt from "jsonwebtoken";
 
 import ROLE from "../utils/enums.js";
@@ -128,14 +129,14 @@ class TeamController {
         if (member.isExistUser) {
           let memberUser = await userModel.findById(member.userId);
           memberUsers.push({
-			member: member,
-			info: memberUser
-		  });
+            member: member,
+            info: memberUser
+          });
         } else {
-			memberUsers.push({
-				member: member
-			})
-		}
+          memberUsers.push({
+            member: member
+          })
+        }
       }
       return res.status(201).json({
         team: foundTeam,
@@ -274,48 +275,90 @@ class TeamController {
     }
   };
 
-	addOpponent = async (req, res, next) => {
-		const userId = req.userId;
-		const {teamId, opponentId, area, time, message} = req.body;
-		try {
-			
-			const foundCaptain = await memberModel.findOne({
-				teamId: teamId,
-				userId: userId
-			});
-			const foundOpponentCaptain = await memberModel.findOne({
-				teamId: opponentId,
-			});
-			const foundTeam = await teamModel.findById(teamId);
-			const foundOpponent = await teamModel.findById(opponentId);
+  addOpponent = async (req, res, next) => {
+    const userId = req.userId;
+    const { teamId, opponentId, area, time, message } = req.body;
+    try {
 
-			if (foundCaptain.role != ROLE.CAPTAIN) {
-				return res.status(403).json({
-					message: "Not permitted",
-				});
-			} else {
-				const newNoti = await notiModel.create({
-					type: ROLE.TEAM,
-					sendedTeamId: teamId,
-					senderId: userId,
-					recievedId: foundOpponentCaptain.userId,
-					recievedTeamId: opponentId,
-					area: area,
-					time: time,
-					content: `${foundTeam.name} want to play with ${foundOpponent.name} at ${area} on ${moment(time).format('MMMM Do YYYY, h:mm a')}`,
-				});
-			}
+      const foundCaptain = await memberModel.findOne({
+        teamId: teamId,
+        userId: userId
+      });
+      const foundOpponentCaptain = await memberModel.findOne({
+        teamId: opponentId,
+      });
+      const foundTeam = await teamModel.findById(teamId);
+      const foundOpponent = await teamModel.findById(opponentId);
 
-			return res.status(201).json({
-				message: "Add opponent successful!!",
-			});
-		} catch (error) {
-			if (!error.statusCode) {
-				error.statusCode = 500;
-			}
-			next(error);
-		}
-	};
+      if (foundCaptain.role != ROLE.CAPTAIN) {
+        return res.status(403).json({
+          message: "Not permitted",
+        });
+      } else {
+        const newNoti = await notiModel.create({
+          type: ROLE.TEAM,
+          sendedTeamId: teamId,
+          senderId: userId,
+          recievedId: foundOpponentCaptain.userId,
+          recievedTeamId: opponentId,
+          area: area,
+          time: time,
+          content: `${foundTeam.name} want to play with ${foundOpponent.name} at ${area} on ${moment(time).format('MMMM Do YYYY, h:mm a')}`,
+        });
+      }
+
+      return res.status(201).json({
+        message: "Add opponent successful!!",
+      });
+    } catch (error) {
+      if (!error.statusCode) {
+        error.statusCode = 500;
+      }
+      next(error);
+    }
+  };
+
+  acceptOpponent = async (req, res, next) => {
+    const userId = req.userId;
+    try {
+      const foundNoti = await notiModel.findById(req.params.notiId);
+      const foundTeam = await teamModel.findById(foundNoti.recievedTeamId);
+      const foundOpponent = await teamModel.findById(foundNoti.sendedTeamId);
+
+      const newMatch = await matchModel.create({
+        team1:{
+          teamId: foundNoti.sendedTeamId
+        },
+        team2: {
+          teamId: foundNoti.recievedTeamId
+        },
+        time: foundNoti.time,
+        area: foundNoti.area,
+      });
+
+      const newNoti = await notiModel.create({
+        type: ROLE.TEAM,
+        sendedTeamId: foundNoti.recievedTeamId,
+        senderId: foundNoti.recievedId,
+        recievedId: foundNoti.senderId,
+        recievedTeamId: foundNoti.sendedTeamId,
+        area: foundNoti.area,
+        time: foundNoti.time,
+        content: `${foundTeam.name} accept to play with ${foundOpponent.name} at ${foundNoti.area} on ${moment(foundNoti.time).format('MMMM Do YYYY, h:mm a')}`,
+      });
+
+
+      return res.status(201).json({
+        message: "Accept opponent successful!!",
+        matchId: newMatch._id
+      });
+    } catch (error) {
+      if (!error.statusCode) {
+        error.statusCode = 500;
+      }
+      next(error);
+    }
+  };
 
 }
 

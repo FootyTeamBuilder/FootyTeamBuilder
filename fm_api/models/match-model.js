@@ -13,7 +13,6 @@ const matchSchema = new Schema({
 		//check if score === verifyScore -> resolve
 		// score !== verifyScore -> conflict
 		// verify score === null -> pending input
-		required: true,
 	},
 	team2: {
 		teamId: {
@@ -25,12 +24,10 @@ const matchSchema = new Schema({
 		//check if score === verifyScore -> resolve
 		// score !== verifyScore -> conflict
 		// verify score === null -> pending input
-		required: true,
 	},
 	status: {
 		type: String,
 		enum: ["none", "pending", "conflict", "confirm"],
-		required: true,
 	},
 	matchRecord: [
 		{
