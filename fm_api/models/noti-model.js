@@ -24,6 +24,9 @@ const notiSchema = new Schema({
     content: {
         type: String
     },
+    message: {
+        type: String
+    },
 });
 
 notiSchema.set('timestamps', true);
