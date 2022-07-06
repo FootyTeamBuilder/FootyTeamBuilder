@@ -20,7 +20,7 @@ const teamSchema = new Schema({
         minAge: { type: Number, min: 0 },
         maxAge: { type: Number, min: 0 },
     },
-    competitionHistory: [
+    competitionHistory: [//
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Matchs"
@@ -42,7 +42,7 @@ const teamSchema = new Schema({
         type: Date,
         required: false,
     },
-    comments: [
+    comments: [//
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Comments"
