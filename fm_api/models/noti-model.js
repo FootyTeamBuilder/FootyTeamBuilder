@@ -7,7 +7,10 @@ const notiSchema = new Schema({
         type: String,
         enum: ['User', 'Team', 'System']
     },
-    teamId: {
+    sendedTeamId: {
+        type: String,
+    },
+    recievedTeamId: {
         type: String,
     },
     senderId: {
@@ -21,6 +24,15 @@ const notiSchema = new Schema({
     content: {
         type: String
     },
+    message: {
+        type: String
+    },
+    time: {
+		type: Date,
+	},
+	area: {
+		type: String,
+	},
 });
 
 notiSchema.set('timestamps', true);
