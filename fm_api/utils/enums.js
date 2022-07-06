@@ -12,5 +12,7 @@ const MATCH_STATUS = {
 	CONFLICT: "conflict",
 	CONFIRM: "confirm"
 };
+const MATCH_STATUS_ENUMS = Object.freeze(MATCH_STATUS);
+export { MATCH_STATUS_ENUMS };
 
-export default Object.freeze(ROLE, MATCH_STATUS);
+export default Object.freeze(ROLE);

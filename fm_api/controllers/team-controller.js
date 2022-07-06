@@ -4,9 +4,10 @@ import userModel from "../models/user-model.js";
 import matchModel from "../models/match-model.js";
 import jwt from "jsonwebtoken";
 
-import ROLE from "../utils/enums.js";
+import ROLE, { MATCH_STATUS_ENUMS } from "../utils/enums.js";
 import notiModel from "../models/noti-model.js";
 import moment from "moment";
+import { ObjectId } from "mongodb";
 
 class TeamController {
   //[POST] /team/create
@@ -326,7 +327,7 @@ class TeamController {
       const foundOpponent = await teamModel.findById(foundNoti.sendedTeamId);
 
       const newMatch = await matchModel.create({
-        team1:{
+        team1: {
           teamId: foundNoti.sendedTeamId
         },
         team2: {
@@ -359,6 +360,98 @@ class TeamController {
       next(error);
     }
   };
+
+  updateMatch = async (req, res, next) => {
+    const matchId = req.params.matchId;
+    const captainId = req.userId;
+    const { team1Score, team2Score, matchRecord } = req.body;
+    try {
+      const foundMatch = await matchModel.findById(matchId);
+      const team1Captain = await memberModel.findOne({
+        teamId: foundMatch.team1.teamId
+      });
+      let isTeam1Captain = false;
+      if (captainId == team1Captain.userId) {
+        isTeam1Captain = true;
+       
+      }
+      //xóa các record upate từ trước
+      await matchModel.updateOne(
+        {
+          "_id": ObjectId(matchId)
+        }, 
+        {
+        $pull: {
+          'matchRecord':
+            { 'isTeam1': isTeam1Captain }
+
+        },
+      });
+      //foundMatch.matchRecord.pull({isTeam1: true});
+      //captain team 1 update score 1
+      if (isTeam1Captain) {
+        foundMatch.team1.score1 = team1Score;
+        foundMatch.team2.score1 = team2Score;
+      } else { //captain team 2 update score 2
+        foundMatch.team1.score2 = team1Score;
+        foundMatch.team2.score2 = team2Score;
+      }
+      //re-format matchRecord
+      matchRecord.map(record => {
+        foundMatch.matchRecord.push({ ...record, memberId: ObjectId(record.memberId) });
+        // return { ...record, memberId: ObjectId(record.memberId) }
+      }
+      )
+      //push match record
+
+      if (foundMatch.status == MATCH_STATUS_ENUMS.NONE) {
+        foundMatch.status = MATCH_STATUS_ENUMS.PENDING;
+      } else {
+        console.log('not pending');
+        if (this.verifySCore(foundMatch.team1, foundMatch.team2)) {
+          console.log('confirm');
+
+          foundMatch.status = MATCH_STATUS_ENUMS.CONFIRM
+        } else {
+          console.log('conflict');
+
+          foundMatch.status = MATCH_STATUS_ENUMS.CONFLICT
+        }
+      }
+      await foundMatch.save();
+      // if (foundMatch.status == MATCH_STATUS_ENUMS.NONE) {
+      //   foundMatch.team1.score = team1Score;
+      //   foundMatch.team2.score = team2Score;
+      //   foundMatch.matchRecord.push(matchRecord);
+      //   foundMatch.status == MATCH_STATUS_ENUMS.PENDING;
+      //   await foundMatch.save();
+      // } else if (foundMatch.status == MATCH_STATUS_ENUMS.PENDING){
+      //   foundMatch.team1.verifyScore = team1Score;
+      //   foundMatch.team2.verifyScore = team2Score;
+      //   foundMatch.matchRecord.push(matchRecord);
+      //   foundMatch.status == MATCH_STATUS_ENUMS.PENDING;
+      //   await foundMatch.save();
+      // }
+
+      return res.status(201).json({
+        message: "Accept opponent successful!!",
+        match: foundMatch,
+      });
+    } catch (error) {
+      if (!error.statusCode) {
+        error.statusCode = 500;
+      }
+      next(error);
+    }
+  };
+
+  verifySCore = (team1, team2) => {
+    if (team1.score1 == team1.score2 && team2.score1 == team2.score2) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 
 }
 
