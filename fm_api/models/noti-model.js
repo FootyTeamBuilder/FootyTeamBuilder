@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 const notiSchema = new Schema({
     type :{
         type: String,
-        enum: ['User', 'Team', 'System']
+        enum: ['invite', 'join', 'opponent', 'system']
     },
     sendedTeamId: {
         type: String,

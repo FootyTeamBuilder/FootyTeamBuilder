@@ -3,7 +3,7 @@ import notiModel from "../models/noti-model.js";
 import teamModel from "../models/team-model.js";
 import memberModel from "../models/member-model.js";
 
-import ROLE from "../utils/enums.js";
+import ROLE, { NOTI_TYPE_ENUMS } from "../utils/enums.js";
 import { ObjectId } from "mongodb";
 
 class UserController {
@@ -97,35 +97,42 @@ class UserController {
 				teamId: teamId,
 				role: ROLE.CAPTAIN,
 			});
+
 			// receiveId will be captain by default
 			let receiveId = foundCaptain.userId.toString();
-			let type = ROLE.USER;
+			let type = NOTI_TYPE_ENUMS.JOIN;
 			let content;
 			if (playerId) {
 				if (foundCaptain.userId.toString() !== senderId.toString()) {
 					throw new Error("Permission restricted");
 				}
+				const foundCaptainUser = await userModel.findById(senderId);
 				receiveId = playerId;
-				type = ROLE.TEAM;
-				content = `${foundTeam.name} request you to join`;
+				type = NOTI_TYPE_ENUMS.INVITE;
+				content = `${foundCaptainUser.name} mời bạn gia nhập ${foundTeam.name}`;
+				await notiModel.create({
+					type,
+					senderId: senderId,
+					recievedId: receiveId,
+					sendedTeamId: teamId,
+					content,
+				});
 			} else {
 				const foundUser = await userModel.findById(senderId);
-				content = foundUser.name + " request to join " + foundTeam.name;
+				content = foundUser.name + " xin gia nhập " + foundTeam.name;
+				await notiModel.create({
+					type,
+					senderId: senderId,
+					recievedId: receiveId,
+					recievedTeamId: teamId,
+					content,
+				});
 			}
 
-			const newNoti = await notiModel.create({
-				type,
-				senderId: senderId,
-				recievedId: receiveId,
-				teamId: teamId,
-				content,
-			});
-			// await newNoti.save();
 			return res.status(201).json({
 				message: "Send request successful!!",
 				teamId: teamId,
-				notiId: newNoti._id,
-				content: newNoti.content,
+
 			});
 		} catch (error) {
 			if (!error.statusCode) {
@@ -140,25 +147,28 @@ class UserController {
 		const notiId = req.params.notiId;
 		try {
 			const foundNoti = await notiModel.findById(notiId);
-			const foundTeam = await teamModel.findById(foundNoti.teamId);
+			const foundTeam = await teamModel.findById(foundNoti.recievedTeamId);
 			const foundCaptain = await userModel.findById(captainId);
 
 			const newMember = await memberModel.create({
 				userId: foundNoti.senderId,
-				teamId: foundNoti.teamId,
+				teamId: foundNoti.recievedTeamId,
 				role: ROLE.MEMBER,
 				isExistUser: true
 			});
 			const newNoti = await notiModel.create({
-				type: ROLE.USER,
+				type: NOTI_TYPE_ENUMS.SYSTEM,
 				senderId: captainId,
 				recievedId: foundNoti.senderId,
-				teamId: foundNoti.teamId,
+				sendedTeamId: foundTeam._id,
 				content:
 					foundCaptain.name +
-					" accepted your request to join " +
+					" đã chấp nhận yêu cầu gia nhập của bạn vào " +
 					foundTeam.name,
 			});
+
+			await notiModel.findById(notiId).remove();
+
 			return res.status(201).json({
 				message: "Accept request successful!!",
 			});
@@ -172,7 +182,57 @@ class UserController {
 	};
 
 	// user accept captain invitation
-	acceptCaptainInvitation = async (req, res, next) => { };
+	acceptInvitation = async (req, res, next) => {
+		const userId = req.userId;
+		const notiId = req.params.notiId;
+		try {
+			const foundNoti = await notiModel.findById(notiId);
+			const foundTeam = await teamModel.findById(foundNoti.sendedTeamId);
+			const foundCaptain = await memberModel.findOne({
+				teamId: foundTeam._id,
+				role: ROLE.CAPTAIN
+			});
+			const foundUser = await userModel.findById(userId);
+
+			const existMember = await memberModel.findOne({
+				userId: userId,
+				teamId: foundTeam._id
+			});
+
+			if (!existMember) {
+				await memberModel.create({
+					userId: userId,
+					teamId: foundTeam._id,
+					role: ROLE.MEMBER,
+					isExistUser: true
+				});
+			}
+
+			const newNoti = await notiModel.create({
+				type: NOTI_TYPE_ENUMS.SYSTEM,
+				senderId: userId,
+				recievedId: foundCaptain._id,
+				recievedTeamId: foundTeam._id,
+				content:
+					foundUser.name +
+					" đã chấp nhận lời mời gia nhập vào " +
+					foundTeam.name + 
+					" của bạn",
+			});
+
+			await notiModel.findById(notiId).remove();
+
+			return res.status(201).json({
+				message: "Accept invite successful!!",
+			});
+
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
 
 	fetchUserNoti = async (req, res, next) => {
 		const userId = req.userId;
@@ -220,14 +280,14 @@ class UserController {
 		const isCaptain = req.params.isCaptain;
 		try {
 			let foundMembers;
-			if(isCaptain == "true"){
-				foundMembers = await memberModel.find({userId: userId, role: ROLE.CAPTAIN});
+			if (isCaptain == "true") {
+				foundMembers = await memberModel.find({ userId: userId, role: ROLE.CAPTAIN });
 			} else {
-				foundMembers = await memberModel.find({userId: userId});
+				foundMembers = await memberModel.find({ userId: userId });
 			}
 			//console.log(foundMembers);
 			let foundTeams = [];
-			for(var member of foundMembers){
+			for (var member of foundMembers) {
 				const team = await teamModel.findById(member.teamId);
 				foundTeams.push({
 					team: team,

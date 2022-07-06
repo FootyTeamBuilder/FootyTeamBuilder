@@ -1,8 +1,6 @@
 const ROLE = {
 	CAPTAIN: "đội trưởng",
 	MEMBER: "thành viên",
-	USER: "User",
-	TEAM: "Team",
 	Nickname: 'Nickname'
 };
 
@@ -12,7 +10,19 @@ const MATCH_STATUS = {
 	CONFLICT: "conflict",
 	CONFIRM: "confirm"
 };
+
+const NOTI_TYPE = {
+	INVITE: "invite", //mời thành viên vào đội
+	JOIN: "join", //thành viên yêu cầu vào đội
+	OPPONENT: "opponent", //bắt đối
+	SYSTEM: "system"
+
+}
+
 const MATCH_STATUS_ENUMS = Object.freeze(MATCH_STATUS);
 export { MATCH_STATUS_ENUMS };
+
+const NOTI_TYPE_ENUMS = Object.freeze(NOTI_TYPE);
+export {NOTI_TYPE_ENUMS};
 
 export default Object.freeze(ROLE);
