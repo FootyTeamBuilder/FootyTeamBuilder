@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 
 import ROLE from "../utils/enums.js";
 import notiModel from "../models/noti-model.js";
+import moment from "moment";
 
 class TeamController {
   //[POST] /team/create
@@ -275,18 +276,18 @@ class TeamController {
 
 	addOpponent = async (req, res, next) => {
 		const userId = req.userId;
-		const data = req.body;
+		const {teamId, opponentId, area, time, message} = req.body;
 		try {
-			console.log(data);
+			
 			const foundCaptain = await memberModel.findOne({
-				teamId: data.teamId,
+				teamId: teamId,
 				userId: userId
 			});
 			const foundOpponentCaptain = await memberModel.findOne({
-				teamId: data.opponentId,
+				teamId: opponentId,
 			});
-			const foundTeam = await teamModel.findById(data.teamId);
-			const foundOpponent = await teamModel.findById(data.opponentId);
+			const foundTeam = await teamModel.findById(teamId);
+			const foundOpponent = await teamModel.findById(opponentId);
 
 			if (foundCaptain.role != ROLE.CAPTAIN) {
 				return res.status(403).json({
@@ -295,13 +296,15 @@ class TeamController {
 			} else {
 				const newNoti = await notiModel.create({
 					type: ROLE.TEAM,
-					senderId: data.teamId,
+					sendedTeamId: teamId,
+					senderId: userId,
 					recievedId: foundOpponentCaptain.userId,
-					teamId: data.opponentId,
-					content: `${foundTeam.name} want to play with ${foundOpponent.name} at ${data.area} on ${data.time} `,
+					recievedTeamId: opponentId,
+					area: area,
+					time: time,
+					content: `${foundTeam.name} want to play with ${foundOpponent.name} at ${area} on ${moment(time).format('MMMM Do YYYY, h:mm a')}`,
 				});
 			}
-
 
 			return res.status(201).json({
 				message: "Add opponent successful!!",
