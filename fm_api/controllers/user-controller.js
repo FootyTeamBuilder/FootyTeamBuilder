@@ -136,42 +136,33 @@ class UserController {
 	};
 	//? captain accept member to join
 	acceptMemberToTeam = async (req, res, next) => {
-		const userId = req.userId;
+		const captainId = req.userId;
 		const notiId = req.params.notiId;
 		try {
 			const foundNoti = await notiModel.findById(notiId);
-			const foundCaptain = await memberModel.findOne({
-				teamId: foundNoti.teamId,
-				role: ROLE.CAPTAIN,
-			});
 			const foundTeam = await teamModel.findById(foundNoti.teamId);
-			const foundUser = await userModel.findById(userId);
+			const foundCaptain = await userModel.findById(captainId);
 
-			//check is user is captain
-			if (userId == foundCaptain.userId) {
-				const newMember = await memberModel.create({
-					userId: foundNoti.senderId,
-					teamId: foundNoti.teamId,
-					role: ROLE.MEMBER,
-				});
-				await newMember.save();
-				const newNoti = await notiModel.create({
-					type: ROLE.USER,
-					senderId: userId,
-					recievedId: foundNoti.senderId,
-					teamId: foundNoti.teamId,
-					content:
-						foundUser.name +
-						" accept your request to join " +
-						foundTeam.name,
-				});
-				await newNoti.save();
-				return res.status(201).json({
-					message: "Accept request successful!!",
-				});
-			} else {
-				throw new Error("Permission restricted");
-			}
+			const newMember = await memberModel.create({
+				userId: foundNoti.senderId,
+				teamId: foundNoti.teamId,
+				role: ROLE.MEMBER,
+				isExistUser: true
+			});
+			const newNoti = await notiModel.create({
+				type: ROLE.USER,
+				senderId: captainId,
+				recievedId: foundNoti.senderId,
+				teamId: foundNoti.teamId,
+				content:
+					foundCaptain.name +
+					" accepted your request to join " +
+					foundTeam.name,
+			});
+			return res.status(201).json({
+				message: "Accept request successful!!",
+			});
+
 		} catch (error) {
 			if (!error.statusCode) {
 				error.statusCode = 500;
@@ -181,7 +172,7 @@ class UserController {
 	};
 
 	// user accept captain invitation
-	acceptCaptainInvitation = async (req, res, next) => {};
+	acceptCaptainInvitation = async (req, res, next) => { };
 
 	fetchUserNoti = async (req, res, next) => {
 		const userId = req.userId;
