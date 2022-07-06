@@ -211,7 +211,7 @@ class UserController {
 			const newNoti = await notiModel.create({
 				type: NOTI_TYPE_ENUMS.SYSTEM,
 				senderId: userId,
-				recievedId: foundCaptain._id,
+				recievedId: foundCaptain.userId,
 				recievedTeamId: foundTeam._id,
 				content:
 					foundUser.name +
