@@ -6,4 +6,11 @@ const ROLE = {
 	Nickname: 'Nickname'
 };
 
-export default Object.freeze(ROLE);
+const MATCH_STATUS = {
+	NONE: "none",
+	PENDING: "pending",
+	CONFLICT: "conflict",
+	CONFIRM: "confirm"
+};
+
+export default Object.freeze(ROLE, MATCH_STATUS);
