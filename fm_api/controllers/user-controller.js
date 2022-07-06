@@ -216,7 +216,7 @@ class UserController {
 				content:
 					foundUser.name +
 					" đã chấp nhận lời mời gia nhập vào " +
-					foundTeam.name + 
+					foundTeam.name +
 					" của bạn",
 			});
 
@@ -237,7 +237,9 @@ class UserController {
 	fetchUserNoti = async (req, res, next) => {
 		const userId = req.userId;
 		//fetch noti list based on receivedId
-		const notiList = await notiModel.find({ recievedId: ObjectId(userId) });
+		const notiList = await notiModel.find({ recievedId: ObjectId(userId) }).sort({
+			createdAt: -1
+		});
 
 		res.status(201).json({
 			message: "Fetch notifications list successful",
