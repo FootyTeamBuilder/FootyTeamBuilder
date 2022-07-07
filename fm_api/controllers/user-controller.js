@@ -28,9 +28,7 @@ class UserController {
 	// [PUT] /user/update-information
 	updateInformation = async (req, res, next) => {
 		const userId = req.userId;
-		// console.log("userId ", userId);
 		const data = req.body;
-		// console.log("data ", data);
 		try {
 			const foundUser = await userModel.findById(userId);
 			Object.keys(data).reduce((user, key) => {
@@ -251,8 +249,6 @@ class UserController {
 	leaveTeam = async (req, res, next) => {
 		const userId = req.userId;
 		const teamId = req.params.teamId;
-		console.log(teamId);
-		console.log(userId);
 		try {
 			// const foundMember = await memberModel.findOne({
 			// 	teamId: teamId,
@@ -288,7 +284,6 @@ class UserController {
 			} else {
 				foundMembers = await memberModel.find({ userId: userId });
 			}
-			//console.log(foundMembers);
 			let foundTeams = [];
 			for (var member of foundMembers) {
 				const team = await teamModel.findById(member.teamId);
