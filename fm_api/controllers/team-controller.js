@@ -468,6 +468,8 @@ class TeamController {
 		try {
 			const commentList = await commentModel.find({
 				teamId: teamId
+			}).sort({
+				createdAt: -1
 			});
 
 			return res.status(201).json({
