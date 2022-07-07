@@ -30,6 +30,7 @@ class TeamController {
 				teamId: newTeam._id,
 				userId: userId,
 				role: ROLE.CAPTAIN,
+				isExistUser: true,
 			});
 			return res.status(201).json({
 				message: "Create New Team Successful",
@@ -139,7 +140,8 @@ class TeamController {
 			}
 			return res.status(201).json({
 				team: foundTeam,
-				captain: captainUser,
+				captain: captain,
+				captainUser: captainUser,
 				members: memberUsers,
 			});
 		} catch (error) {
