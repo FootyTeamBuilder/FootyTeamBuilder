@@ -20,6 +20,7 @@ class TeamController {
 				name: req.body.name,
 				description: req.body.description,
 				level: req.body.level,
+				area: req.body.area,
 				age: {
 					minAge: req.body.minAge,
 					maxAge: req.body.maxAge,
@@ -63,10 +64,8 @@ class TeamController {
 
 			const foundTeam = await teamModel.findById(teamId);
 
-			console.log("foundTeam ", foundTeam);
 			Object.keys(data).reduce((team, key) => {
 				//update embedded minAge maxAge
-				console.log("team[key] ", team[key]);
 				if (!team[key]) {
 					team["age"][key] = data[key];
 					return team;
