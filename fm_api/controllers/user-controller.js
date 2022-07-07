@@ -5,6 +5,7 @@ import memberModel from "../models/member-model.js";
 
 import ROLE, { NOTI_TYPE_ENUMS } from "../utils/enums.js";
 import { ObjectId } from "mongodb";
+import commentModel from "../models/comment-model.js";
 
 class UserController {
 
@@ -307,6 +308,30 @@ class UserController {
 			next(error);
 		}
 	};
+
+	addComment = async (req, res, next) => {
+		const userId = req.userId;
+		const teamId = req.params.teamId;
+		const {content} = req.body;
+		try {
+			await commentModel.create({
+				userId: userId,
+				teamId: teamId,
+				content: content,
+			});
+
+			return res.status(201).json({
+				message: "Add comment successful",
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
+
+	
 }
 
 export default UserController;

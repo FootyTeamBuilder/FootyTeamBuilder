@@ -13,10 +13,6 @@ const commentSchema = new Schema({
         ref: "User",
         required: true   
     },
-    number: {
-        type: Number,
-        required: true,
-    },
     content: {
         type: String
     },
