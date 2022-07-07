@@ -36,7 +36,7 @@ const matchSchema = new Schema({
 	status: {
 		type: String,
 		enum: ["none", "pending", "conflict", "confirm"],
-		default: "none"
+		default: "none",
 	},
 	matchRecord: [
 		{
@@ -53,6 +53,7 @@ const matchSchema = new Schema({
 	},
 	area: {
 		type: String,
+		default: "",
 	},
 });
 

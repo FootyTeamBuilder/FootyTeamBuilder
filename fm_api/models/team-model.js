@@ -10,7 +10,7 @@ const teamSchema = new Schema({
 	description: {
 		type: String,
 		default: "",
-		required: false,
+		required: true,
 	},
 	level: {
 		type: String,
