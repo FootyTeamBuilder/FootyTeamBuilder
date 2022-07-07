@@ -314,8 +314,13 @@ class UserController {
 		const teamId = req.params.teamId;
 		const {content} = req.body;
 		try {
+			const foundUser = await userModel.findById(userId);
 			await commentModel.create({
-				userId: userId,
+				user:{
+					userId: userId,
+					name: foundUser.name,
+					
+				},
 				teamId: teamId,
 				content: content,
 			});
