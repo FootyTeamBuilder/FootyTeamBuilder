@@ -2,6 +2,7 @@ import teamModel from "../models/team-model.js";
 import memberModel from "../models/member-model.js";
 import userModel from "../models/user-model.js";
 import matchModel from "../models/match-model.js";
+import commentModel from "../models/comment-model.js";
 import jwt from "jsonwebtoken";
 
 import ROLE, { MATCH_STATUS_ENUMS, NOTI_TYPE_ENUMS } from "../utils/enums.js";
@@ -459,6 +460,25 @@ class TeamController {
 			return true;
 		} else {
 			return false;
+		}
+	};
+
+	getCommentList = async (req, res, next) => {
+		const teamId = req.params.teamId;
+		try {
+			const commentList = await commentModel.find({
+				teamId: teamId
+			});
+
+			return res.status(201).json({
+				message: "Get comment list successful",
+				comments: commentList
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
 		}
 	};
 }
