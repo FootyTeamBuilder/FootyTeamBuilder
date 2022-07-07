@@ -10,8 +10,6 @@ class MatchController {
 			$or: [{ "team1.teamId": teamId }, { "team2.teamId": teamId }],
 		});
 
-		console.log("matchList ", matchList);
-
 		return res.status(200).json({
 			message: "Fetch match history successful",
 			data: matchList,

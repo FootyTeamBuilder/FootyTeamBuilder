@@ -7,7 +7,7 @@ const teamController = new TeamController();
 const route = express.Router();
 
 route.get("/list/:keyword?", teamController.listTeam);
-route.post("/list", isAuth, teamController.listTeamOfUser);
+// route.post("/list", isAuth, teamController.listTeamOfUser);
 route.put("/create", isAuth, teamController.create);
 route.put("/edit/:teamId", isAuth, teamController.edit);
 route.get("/view-team/:teamId", teamController.viewTeam);
