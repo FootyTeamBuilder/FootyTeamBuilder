@@ -21,6 +21,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// setup public folder
+app.use("/public", express.static("public"));
+
 app.use(loggerMiddleware);
 
 //todo using route
@@ -37,7 +40,7 @@ app.get("/", (req, res) => {
 // error handlers
 app.use((errors, req, res, next) => {
 	console.log(errors);
-	const { statusCode, message } = errors;
+	let { statusCode, message } = errors;
 	if (!statusCode) {
 		statusCode = 500;
 	}

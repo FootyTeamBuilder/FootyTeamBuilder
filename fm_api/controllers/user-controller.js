@@ -7,7 +7,6 @@ import ROLE, { NOTI_TYPE_ENUMS } from "../utils/enums.js";
 import { ObjectId } from "mongodb";
 
 class UserController {
-
 	getInformation = async (req, res, next) => {
 		const userId = req.params.userId;
 		try {
@@ -32,7 +31,13 @@ class UserController {
 		// console.log("data ", data);
 		try {
 			const foundUser = await userModel.findById(userId);
+			if (data.avatar) {
+			const url = req.protocol + "://" + req.get("host");
+			data.avatar = url + "/public/" + req.file.filename;
+			console.log("data.avatar ", data.avatar);
+			}
 			Object.keys(data).reduce((user, key) => {
+				console.log("user[key] ", user[key]);
 				user[key] = data[key];
 				return user;
 			}, foundUser);
@@ -132,7 +137,6 @@ class UserController {
 			return res.status(201).json({
 				message: "Send request successful!!",
 				teamId: teamId,
-
 			});
 		} catch (error) {
 			if (!error.statusCode) {
@@ -147,14 +151,16 @@ class UserController {
 		const notiId = req.params.notiId;
 		try {
 			const foundNoti = await notiModel.findById(notiId);
-			const foundTeam = await teamModel.findById(foundNoti.recievedTeamId);
+			const foundTeam = await teamModel.findById(
+				foundNoti.recievedTeamId
+			);
 			const foundCaptain = await userModel.findById(captainId);
 
 			const newMember = await memberModel.create({
 				userId: foundNoti.senderId,
 				teamId: foundNoti.recievedTeamId,
 				role: ROLE.MEMBER,
-				isExistUser: true
+				isExistUser: true,
 			});
 			const newNoti = await notiModel.create({
 				type: NOTI_TYPE_ENUMS.SYSTEM,
@@ -172,7 +178,6 @@ class UserController {
 			return res.status(201).json({
 				message: "Accept request successful!!",
 			});
-
 		} catch (error) {
 			if (!error.statusCode) {
 				error.statusCode = 500;
@@ -190,13 +195,13 @@ class UserController {
 			const foundTeam = await teamModel.findById(foundNoti.sendedTeamId);
 			const foundCaptain = await memberModel.findOne({
 				teamId: foundTeam._id,
-				role: ROLE.CAPTAIN
+				role: ROLE.CAPTAIN,
 			});
 			const foundUser = await userModel.findById(userId);
 
 			const existMember = await memberModel.findOne({
 				userId: userId,
-				teamId: foundTeam._id
+				teamId: foundTeam._id,
 			});
 
 			if (!existMember) {
@@ -204,7 +209,7 @@ class UserController {
 					userId: userId,
 					teamId: foundTeam._id,
 					role: ROLE.MEMBER,
-					isExistUser: true
+					isExistUser: true,
 				});
 			}
 
@@ -225,7 +230,6 @@ class UserController {
 			return res.status(201).json({
 				message: "Accept invite successful!!",
 			});
-
 		} catch (error) {
 			if (!error.statusCode) {
 				error.statusCode = 500;
@@ -237,9 +241,11 @@ class UserController {
 	fetchUserNoti = async (req, res, next) => {
 		const userId = req.userId;
 		//fetch noti list based on receivedId
-		const notiList = await notiModel.find({ recievedId: ObjectId(userId) }).sort({
-			createdAt: -1
-		});
+		const notiList = await notiModel
+			.find({ recievedId: ObjectId(userId) })
+			.sort({
+				createdAt: -1,
+			});
 
 		res.status(201).json({
 			message: "Fetch notifications list successful",
@@ -283,7 +289,10 @@ class UserController {
 		try {
 			let foundMembers;
 			if (isCaptain == "true") {
-				foundMembers = await memberModel.find({ userId: userId, role: ROLE.CAPTAIN });
+				foundMembers = await memberModel.find({
+					userId: userId,
+					role: ROLE.CAPTAIN,
+				});
 			} else {
 				foundMembers = await memberModel.find({ userId: userId });
 			}
@@ -293,7 +302,7 @@ class UserController {
 				const team = await teamModel.findById(member.teamId);
 				foundTeams.push({
 					team: team,
-					role: member.role
+					role: member.role,
 				});
 			}
 
