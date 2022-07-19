@@ -21,7 +21,7 @@ const NOTI_TYPE = {
 const IMAGE_TYPE = {
 	PNG: "image/png",
 	JPG: "image/jpg",
-	JPEG: "image/JPEG",
+	JPEG: "image/jpeg",
 };
 
 const MATCH_STATUS_ENUMS = Object.freeze(MATCH_STATUS);

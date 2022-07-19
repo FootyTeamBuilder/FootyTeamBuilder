@@ -10,12 +10,13 @@ const route = express.Router();
 
 route.get("/view-information/:userId", userController.getInformation);
 route.get("/notification-list", isAuth, userController.fetchUserNoti);
-route.put(
-	"/edit-information",
+route.post(
+	"/image",
 	isAuth,
 	uploadFile.single("avatar"),
-	userController.updateInformation
+	userController.uploadImage
 );
+route.put("/edit-information", isAuth, userController.updateInformation);
 route.put("/request-to-join/:teamId", isAuth, userController.requestToJoinTeam);
 route.put(
 	"/accept-member-to-team/:notiId",

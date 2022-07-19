@@ -24,17 +24,12 @@ class UserController {
 		}
 	};
 
-	// [PUT] /user/update-information
+	// [PUT] /user/edit-information
 	updateInformation = async (req, res, next) => {
 		const userId = req.userId;
 		const data = req.body;
 		try {
 			const foundUser = await userModel.findById(userId);
-			if (data.avatar) {
-			const url = req.protocol + "://" + req.get("host");
-			data.avatar = url + "/public/" + req.file.filename;
-			console.log("data.avatar ", data.avatar);
-			}
 			Object.keys(data).reduce((user, key) => {
 				console.log("user[key] ", user[key]);
 				user[key] = data[key];
@@ -54,39 +49,34 @@ class UserController {
 			next(error);
 		}
 	};
-	//? when user want to join a team
-	// requestToJoinTeam = async (req, res, next) => {
-	// 	const userId = req.userId;
-	// 	// const teamId = req.params["teamId"];
-	// 	const teamId = req.params.teamId;
-	// 	console.log(teamId);
-	// 	try {
-	// 		const foundTeam = await teamModel.findById(teamId);
-	// 		const foundCaptain = await memberModel.findOne({
-	// 			teamId: teamId,
-	// 			role: ROLE.CAPTAIN,
-	// 		});
-	// 		const foundUser = await userModel.findById(userId);
 
-	// 		const newNoti = await notiModel.create({
-	// 			type: ROLE.USER,
-	// 			senderId: userId,
-	// 			recievedId: foundCaptain.userId,
-	// 			teamId: teamId,
-	// 			content: foundUser.name + " request to join " + foundTeam.name,
-	// 		});
-	// 		// await newNoti.save();
-	// 		return res.status(201).json({
-	// 			message: "Send request successful!!",
-	// 			teamId: teamId,
-	// 		});
-	// 	} catch (error) {
-	// 		if (!error.statusCode) {
-	// 			error.statusCode = 500;
-	// 		}
-	// 		next(error);
-	// 	}
-	// };
+	//POST /user/image
+	uploadImage = async (req, res, next) => {
+		const userId = req.userId;
+		const data = req.body;
+		try {
+			const url = req.protocol + "://" + req.get("host");
+			// console.log("req.file ", req.file);
+			// data.avatar = url + "/public/" + req.file.filename;
+			const avatar = url + "/public/" + req.file.filename;
+			await userModel.findOneAndUpdate(
+				{ _id: userId },
+				{ $set: { avatar: avatar } }
+			);
+			return res.json({
+				message: "Update profile successful",
+				data: avatar,
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+		// console.log("req.file ", req.file);
+		// console.log("data.avatar ", data.avatar);
+	};
+
 	// [PUT] /user/request-to-join/:teamId
 	requestToJoinTeam = async (req, res, next) => {
 		//get Id of sender
@@ -316,14 +306,13 @@ class UserController {
 	addComment = async (req, res, next) => {
 		const userId = req.userId;
 		const teamId = req.params.teamId;
-		const {content} = req.body;
+		const { content } = req.body;
 		try {
 			const foundUser = await userModel.findById(userId);
 			await commentModel.create({
-				user:{
+				user: {
 					userId: userId,
 					name: foundUser.name,
-					
 				},
 				teamId: teamId,
 				content: content,
@@ -339,8 +328,6 @@ class UserController {
 			next(error);
 		}
 	};
-
-	
 }
 
 export default UserController;
