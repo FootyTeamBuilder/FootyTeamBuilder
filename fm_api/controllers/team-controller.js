@@ -2,6 +2,7 @@ import teamModel from "../models/team-model.js";
 import memberModel from "../models/member-model.js";
 import userModel from "../models/user-model.js";
 import matchModel from "../models/match-model.js";
+import commentModel from "../models/comment-model.js";
 import jwt from "jsonwebtoken";
 
 import ROLE, { MATCH_STATUS_ENUMS, NOTI_TYPE_ENUMS } from "../utils/enums.js";
@@ -19,6 +20,7 @@ class TeamController {
 				name: req.body.name,
 				description: req.body.description,
 				level: req.body.level,
+				area: req.body.area,
 				age: {
 					minAge: req.body.minAge,
 					maxAge: req.body.maxAge,
@@ -28,6 +30,7 @@ class TeamController {
 				teamId: newTeam._id,
 				userId: userId,
 				role: ROLE.CAPTAIN,
+				isExistUser: true,
 			});
 			return res.status(201).json({
 				message: "Create New Team Successful",
@@ -48,13 +51,11 @@ class TeamController {
 
 		const data = req.body;
 		const teamId = req.params.teamId;
-		console.log(userId);
 		try {
 			const foundMember = await memberModel.findOne({
 				userId: userId,
 				teamId: teamId,
 			});
-			console.log(foundMember);
 
 			if (foundMember.role != ROLE.CAPTAIN) {
 				return res.status(403).json({
@@ -67,7 +68,6 @@ class TeamController {
 			Object.keys(data).reduce((team, key) => {
 				//update embedded minAge maxAge
 				if (!team[key]) {
-					console.log(team["age"][key]);
 					team["age"][key] = data[key];
 					return team;
 				}
@@ -76,7 +76,6 @@ class TeamController {
 				return team;
 			}, foundTeam);
 
-			console.log(foundTeam);
 			await foundTeam.save();
 			return res.status(201).json({
 				message: "Update info successful",
@@ -141,7 +140,8 @@ class TeamController {
 			}
 			return res.status(201).json({
 				team: foundTeam,
-				captain: captainUser,
+				captain: captain,
+				captainUser: captainUser,
 				members: memberUsers,
 			});
 		} catch (error) {
@@ -184,7 +184,6 @@ class TeamController {
 					content: `${foundCaptain.name} mời bạn gia nhập ${foundTeam.name}`,
 				});
 			}
-			console.log(data);
 			const newMember = await memberModel.create(data);
 
 			return res.status(201).json({
@@ -244,7 +243,6 @@ class TeamController {
 				return member;
 			}, foundMember);
 
-			console.log(foundMember);
 			await foundMember.save();
 			return res.status(201).json({
 				message: "Update info successful",
@@ -429,14 +427,9 @@ class TeamController {
 			if (foundMatch.status == MATCH_STATUS_ENUMS.NONE) {
 				foundMatch.status = MATCH_STATUS_ENUMS.PENDING;
 			} else {
-				console.log("not pending");
 				if (this.verifySCore(foundMatch.team1, foundMatch.team2)) {
-					console.log("confirm");
-
 					foundMatch.status = MATCH_STATUS_ENUMS.CONFIRM;
 				} else {
-					console.log("conflict");
-
 					foundMatch.status = MATCH_STATUS_ENUMS.CONFLICT;
 				}
 			}
@@ -459,6 +452,29 @@ class TeamController {
 			return true;
 		} else {
 			return false;
+		}
+	};
+
+	getCommentList = async (req, res, next) => {
+		const teamId = req.params.teamId;
+		try {
+			const commentList = await commentModel
+				.find({
+					teamId: teamId,
+				})
+				.sort({
+					createdAt: -1,
+				});
+
+			return res.status(201).json({
+				message: "Get comment list successful",
+				comments: commentList,
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
 		}
 	};
 }

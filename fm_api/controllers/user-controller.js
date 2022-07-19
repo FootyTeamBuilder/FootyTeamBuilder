@@ -5,6 +5,7 @@ import memberModel from "../models/member-model.js";
 
 import ROLE, { NOTI_TYPE_ENUMS } from "../utils/enums.js";
 import { ObjectId } from "mongodb";
+import commentModel from "../models/comment-model.js";
 
 class UserController {
 	getInformation = async (req, res, next) => {
@@ -26,9 +27,7 @@ class UserController {
 	// [PUT] /user/update-information
 	updateInformation = async (req, res, next) => {
 		const userId = req.userId;
-		// console.log("userId ", userId);
 		const data = req.body;
-		// console.log("data ", data);
 		try {
 			const foundUser = await userModel.findById(userId);
 			if (data.avatar) {
@@ -256,8 +255,6 @@ class UserController {
 	leaveTeam = async (req, res, next) => {
 		const userId = req.userId;
 		const teamId = req.params.teamId;
-		console.log(teamId);
-		console.log(userId);
 		try {
 			// const foundMember = await memberModel.findOne({
 			// 	teamId: teamId,
@@ -296,7 +293,6 @@ class UserController {
 			} else {
 				foundMembers = await memberModel.find({ userId: userId });
 			}
-			//console.log(foundMembers);
 			let foundTeams = [];
 			for (var member of foundMembers) {
 				const team = await teamModel.findById(member.teamId);
@@ -316,6 +312,35 @@ class UserController {
 			next(error);
 		}
 	};
+
+	addComment = async (req, res, next) => {
+		const userId = req.userId;
+		const teamId = req.params.teamId;
+		const {content} = req.body;
+		try {
+			const foundUser = await userModel.findById(userId);
+			await commentModel.create({
+				user:{
+					userId: userId,
+					name: foundUser.name,
+					
+				},
+				teamId: teamId,
+				content: content,
+			});
+
+			return res.status(201).json({
+				message: "Add comment successful",
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
+
+	
 }
 
 export default UserController;

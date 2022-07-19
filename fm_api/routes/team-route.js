@@ -26,5 +26,6 @@ route.delete(
 route.put("/add-opponent", isAuth, teamController.addOpponent);
 route.post("/accept-opponent/:notiId", isAuth, teamController.acceptOpponent);
 route.post("/update-match/:matchId", isAuth, teamController.updateMatch);
+route.get("/comment-list/:teamId", teamController.getCommentList);
 
 export default route;

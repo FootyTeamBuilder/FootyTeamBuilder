@@ -29,5 +29,6 @@ route.put(
 );
 route.delete("/leave-team/:teamId", isAuth, userController.leaveTeam);
 route.get("/user-team-list/:userId/:isCaptain", userController.getUserTeamList);
+route.post("/add-comment/:teamId", isAuth, userController.addComment);
 
 export default route;
