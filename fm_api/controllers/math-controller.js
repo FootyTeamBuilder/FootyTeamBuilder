@@ -11,7 +11,11 @@ class MatchController {
 			.find({
 				$or: [{ "team1.teamId": teamId }, { "team2.teamId": teamId }],
 			})
-			.lean();
+			.lean()
+			.sort({
+				time: -1,
+			});
+;
 
 		let newFormatList = [];
 		for (let match of matchList) {

@@ -400,7 +400,7 @@ class TeamController {
 				},
 				{
 					$pull: {
-						matchRecord: { isTeam1: isTeam1Captain },
+						matchRecord: {},
 					},
 				}
 			);
