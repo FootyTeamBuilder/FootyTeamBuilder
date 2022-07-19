@@ -400,7 +400,7 @@ class TeamController {
 				},
 				{
 					$pull: {
-						matchRecord: { isTeam1: isTeam1Captain },
+						matchRecord: {},
 					},
 				}
 			);
@@ -469,6 +469,30 @@ class TeamController {
 			return res.status(201).json({
 				message: "Get comment list successful",
 				comments: commentList,
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
+
+	checkCaptain = async (req, res, next) => {
+		const teamId = req.params.teamId;
+		const userId = req.userId;
+		try {
+			const foundCaptain = await memberModel.findOne({
+				userId: userId,
+				teamId: teamId,
+				role: ROLE.CAPTAIN
+			});
+			let isCaptain = false;
+			if(foundCaptain){
+				isCaptain = true;
+			}
+			return res.status(201).json({
+				isCaptain: isCaptain
 			});
 		} catch (error) {
 			if (!error.statusCode) {
