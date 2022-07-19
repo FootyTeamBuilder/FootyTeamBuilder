@@ -27,5 +27,7 @@ route.put("/add-opponent", isAuth, teamController.addOpponent);
 route.post("/accept-opponent/:notiId", isAuth, teamController.acceptOpponent);
 route.post("/update-match/:matchId", isAuth, teamController.updateMatch);
 route.get("/comment-list/:teamId", teamController.getCommentList);
+route.get("/is-captain/:teamId", isAuth, teamController.checkCaptain);
+
 
 export default route;
