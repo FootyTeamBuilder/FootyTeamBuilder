@@ -6,6 +6,6 @@ const matchController = new MatchController();
 
 const route = express.Router();
 
-route.get("/match-history/:teamId", isAuth, matchController.getMatchHistory);
+route.get("/match-history/:teamId", matchController.getMatchHistory);
 
 export default route;
