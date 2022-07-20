@@ -39,7 +39,7 @@ class AuthController {
 					expiresIn: "5h",
 				}
 			);
-
+			existUser.avatar = '/static/images/newLogo.jpg'
 			return res.status(200).json({
 				message: "Login successful",
 				id: existUser._id,
