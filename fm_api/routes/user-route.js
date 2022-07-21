@@ -3,11 +3,19 @@ import express from "express";
 import isAuth from "../middlewares/verifyToken.js";
 import UserController from "../controllers/user-controller.js";
 
+import uploadFile from "../functions/upload-file.js";
+
 const userController = new UserController();
 const route = express.Router();
 
 route.get("/view-information/:userId", userController.getInformation);
 route.get("/notification-list", isAuth, userController.fetchUserNoti);
+route.post(
+	"/image",
+	isAuth,
+	uploadFile.single("avatar"),
+	userController.uploadImage
+);
 route.put("/edit-information", isAuth, userController.updateInformation);
 route.put("/request-to-join/:teamId", isAuth, userController.requestToJoinTeam);
 route.put(
