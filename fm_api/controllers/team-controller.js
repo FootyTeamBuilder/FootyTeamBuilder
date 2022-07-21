@@ -220,6 +220,56 @@ class TeamController {
 		}
 	};
 
+	// [POST team/image/:teamId
+	uploadImage = async (req, res, next) => {
+		//get teamId from req.params
+		const teamId = req.params.teamId;
+		// console.log("teamId ", teamId);
+		try {
+			const url = req.protocol + "://" + req.get("host");
+			const logo = url + "/public/" + req.file.filename;
+			await teamModel.findOneAndUpdate(
+				{
+					_id: teamId,
+				},
+				{ $set: { logo: logo } }
+			);
+			return res.json({
+				message: "Update logo successful",
+				data: logo,
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
+
+	// [POST] /team/image
+	uploadImageForNewteam = (req, res, next) => {
+		try {
+			const url = req.protocol + "://" + req.get("host");
+			const logo = url + "/public/" + req.file.filename;
+			// await teamModel.findOneAndUpdate(
+			// 	{
+			// 		_id: teamId,
+			// 	},
+			// 	{ $set: { logo: logo } }
+			// );
+			
+			return res.json({
+				message: "Update logo successful",
+				data: logo,
+			});
+		} catch (error) {
+			if (!error.statusCode) {
+				error.statusCode = 500;
+			}
+			next(error);
+		}
+	};
+
 	updateMember = async (req, res, next) => {
 		const userId = req.userId;
 		const data = req.body;
@@ -486,14 +536,14 @@ class TeamController {
 			const foundCaptain = await memberModel.findOne({
 				userId: userId,
 				teamId: teamId,
-				role: ROLE.CAPTAIN
+				role: ROLE.CAPTAIN,
 			});
 			let isCaptain = false;
-			if(foundCaptain){
+			if (foundCaptain) {
 				isCaptain = true;
 			}
 			return res.status(201).json({
-				isCaptain: isCaptain
+				isCaptain: isCaptain,
 			});
 		} catch (error) {
 			if (!error.statusCode) {
