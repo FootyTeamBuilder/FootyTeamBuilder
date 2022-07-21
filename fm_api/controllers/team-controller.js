@@ -25,6 +25,7 @@ class TeamController {
 					minAge: req.body.minAge,
 					maxAge: req.body.maxAge,
 				},
+				logo: req.body.logo,
 			});
 			const newMember = await memberModel.create({
 				teamId: newTeam._id,
